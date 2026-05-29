@@ -1,0 +1,227 @@
+/* ═══════════════════════════════════════════════════
+   FONTES — Saira / Saira Condensed / Space Mono
+   Arquivos em public/fontes/
+   ═══════════════════════════════════════════════════ */
+
+/* Saira Condensed — Display / Headings / KPIs */
+@font-face {
+  font-family: 'Saira Condensed';
+  src: url('/fontes/SairaCondensed-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saira Condensed';
+  src: url('/fontes/SairaCondensed-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saira Condensed';
+  src: url('/fontes/SairaCondensed-SemiBold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saira Condensed';
+  src: url('/fontes/SairaCondensed-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saira Condensed';
+  src: url('/fontes/SairaCondensed-ExtraBold.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saira Condensed';
+  src: url('/fontes/SairaCondensed-Black.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Saira — Body / Texto / Interface */
+@font-face {
+  font-family: 'Saira';
+  src: url('/fontes/Saira-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saira';
+  src: url('/fontes/Saira-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saira';
+  src: url('/fontes/Saira-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saira';
+  src: url('/fontes/Saira-SemiBold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saira';
+  src: url('/fontes/Saira-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Space Mono — Dados técnicos / Placas / CPF / CT-e */
+@font-face {
+  font-family: 'Space Mono';
+  src: url('/fontes/SpaceMono-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Space Mono';
+  src: url('/fontes/SpaceMono-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =====================================================================
+   Frota 360 — Design tokens (tema light industrial — brandbook v1.0)
+   ===================================================================== */
+:root {
+  /* Backgrounds */
+  --background:           #F8F6F1;
+  --background-card:      #FFFFFF;
+  --background-subtle:    #E4E1D9;
+  --background-muted:     #E4E1D9;
+
+  /* Brand — Âmbar industrial */
+  --brand:                #E8871E;
+  --brand-light:          #F2CC95;
+  --brand-dark:           #B65E18;
+  --brand-surface:        #F2CC95;
+  --brand-border:         #E8871E40;
+
+  /* Accent — Verde operacional */
+  --accent:               #1E9E6A;
+  --accent-mid:           #1C6E49;
+  --accent-surface:       #A7DAC0;
+  --accent-border:        #1E9E6A40;
+
+  /* Status */
+  --status-success:       #16A34A;
+  --status-warning:       #E8871E;
+  --status-danger:        #DC2626;
+  --status-info:          #2563EB;
+  --status-neutral:       #6B7280;
+
+  /* Text */
+  --text-primary:         #211F1B;
+  --text-secondary:       #6E695C;
+  --text-muted:           #6E695C;
+  --text-inverse:         #FFFFFF;
+
+  /* Borders */
+  --border-color:         #E4E1D9;
+  --border-strong:        #6E695C;
+  --border-focus:         #E8871E;
+
+  /* Sidebar */
+  --sidebar-bg:           #211F1B;
+  --sidebar-text:         #6E695C;
+  --sidebar-text-active:  #FFFFFF;
+  --sidebar-active-bg:    #E8871E;
+  --sidebar-hover-bg:     #3A372F;
+  --sidebar-border:       #3A372F;
+
+  /* shadcn semantic tokens → mapeiam para nossos vars */
+  --background-token:     var(--background);
+  --foreground:           var(--text-primary);
+  --card:                 var(--background-card);
+  --card-foreground:      var(--text-primary);
+  --popover:              var(--background-card);
+  --popover-foreground:   var(--text-primary);
+  --primary:              var(--brand);
+  --primary-foreground:   var(--text-inverse);
+  --secondary:            var(--background-subtle);
+  --secondary-foreground: var(--text-primary);
+  --muted:                var(--background-subtle);
+  --muted-foreground:     var(--text-secondary);
+  --accent-token:         var(--accent-surface);
+  --accent-foreground:    var(--accent);
+  --destructive:          var(--status-danger);
+  --destructive-foreground: var(--text-inverse);
+  --input:                var(--border-color);
+  --ring:                 var(--brand);
+  --radius:               0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-[color:var(--border-color)];
+  }
+  html {
+    font-family: 'Saira', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    background-color: var(--background);
+    color: var(--text-primary);
+    font-family: 'Saira', system-ui, sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Saira Condensed', 'Saira', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  /* placas, CPF, números técnicos */
+  .font-mono, code, kbd, samp {
+    font-family: 'Space Mono', ui-monospace, monospace;
+  }
+}
+
+@layer utilities {
+  .text-primary   { color: var(--text-primary); }
+  .text-secondary { color: var(--text-secondary); }
+  .text-muted     { color: var(--text-muted); }
+  .bg-app         { background-color: var(--background); }
+  .bg-card-app    { background-color: var(--background-card); }
+  .bg-subtle      { background-color: var(--background-subtle); }
+
+  /* Pulse para badge crítico */
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: .5; transform: scale(1.2); }
+  }
+  .dot-pulse { animation: pulse-dot 1.4s ease-in-out infinite; }
+}
+
+/* Print — relatórios */
+@media print {
+  aside, header[class*="sticky"], nav, .print\:hidden { display: none !important; }
+  body { background: white !important; }
+  main { padding: 0 !important; }
+  .bg-app-card, .bg-app { background: white !important; }
+  table { page-break-inside: auto; }
+  tr { page-break-inside: avoid; page-break-after: auto; }
+}

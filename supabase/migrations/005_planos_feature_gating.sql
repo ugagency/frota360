@@ -5,6 +5,14 @@
 
 -- 1. Atualizar enum de plano
 ALTER TABLE transportadoras DROP CONSTRAINT IF EXISTS chk_plano;
+
+-- Migrar valores antigos antes de adicionar o novo constraint
+UPDATE transportadoras SET plano = 'profissional' WHERE plano = 'pro';
+UPDATE transportadoras SET plano = 'basico'       WHERE plano = 'starter';
+-- Qualquer valor inesperado vira demo
+UPDATE transportadoras SET plano = 'demo'
+  WHERE plano NOT IN ('demo', 'basico', 'profissional');
+
 ALTER TABLE transportadoras ALTER COLUMN plano SET DEFAULT 'demo';
 ALTER TABLE transportadoras ADD CONSTRAINT chk_plano
   CHECK (plano IN ('demo', 'basico', 'profissional'));

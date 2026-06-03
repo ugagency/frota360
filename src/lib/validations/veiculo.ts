@@ -4,6 +4,7 @@ import { placaValida, normalizarPlaca } from '@/lib/format'
 export const TIPO_VEICULO = ['truck', 'bitruck', 'carreta', 'vanderleia', 'outros'] as const
 export const PROPRIETARIO = ['proprio', 'agregado'] as const
 export const STATUS_VEICULO = ['ativo', 'em_viagem', 'em_manutencao', 'inativo'] as const
+export const CATEGORIA_VEICULO = ['leve', 'medio', 'pesado', 'extra_pesado'] as const
 
 export const MARCAS = [
   'Scania', 'Volvo', 'Mercedes-Benz', 'MAN', 'DAF', 'Iveco', 'Ford', 'Outros',
@@ -11,7 +12,8 @@ export const MARCAS = [
 
 const anoAtual = new Date().getFullYear()
 
-export const veiculoSchema = z.object({
+// Base object — partial-safe for update schema
+const veiculoBase = z.object({
   placa: z
     .string()
     .transform((v) => normalizarPlaca(v))
@@ -33,12 +35,28 @@ export const veiculoSchema = z.object({
   data_proxima_revisao: z.string().optional().nullable(),
 
   observacoes: z.string().max(500, 'Máximo 500 caracteres').optional().nullable(),
+
+  // Feature 1: Seguro (Profissional)
+  seguro_apolice:    z.string().optional().nullable(),
+  seguro_seguradora: z.string().optional().nullable(),
+  seguro_validade:   z.string().optional().nullable(),
+
+  // Feature 4: categoria para benchmark (Profissional)
+  categoria_veiculo: z.enum(CATEGORIA_VEICULO).default('pesado'),
+})
+
+// Full schema with refinement for create/edit form
+export const veiculoSchema = veiculoBase.superRefine((data, ctx) => {
+  const temSeguro = data.seguro_apolice || data.seguro_seguradora
+  if (temSeguro && !data.seguro_validade) {
+    ctx.addIssue({ code: 'custom', message: 'Informe a validade do seguro', path: ['seguro_validade'] })
+  }
 })
 
 export type VeiculoFormData = z.infer<typeof veiculoSchema>
 
-// Atualização parcial — todos os campos opcionais, mas se vierem precisam ser válidos
-export const veiculoUpdateSchema = veiculoSchema.partial()
+// Partial update — uses base without superRefine (refinements don't apply on partial)
+export const veiculoUpdateSchema = veiculoBase.partial()
 export type VeiculoUpdateData = z.infer<typeof veiculoUpdateSchema>
 
 // KM update isolado (modal rápido)
@@ -47,6 +65,13 @@ export const atualizarKmSchema = z.object({
 })
 
 // ---------- Labels ----------
+export const CATEGORIA_LABELS: Record<typeof CATEGORIA_VEICULO[number], string> = {
+  leve:         'Leve (até 3,5t)',
+  medio:        'Médio (3,5t – 10t)',
+  pesado:       'Pesado (10t – 25t)',
+  extra_pesado: 'Extra pesado (acima de 25t)',
+}
+
 export const TIPO_LABELS: Record<typeof TIPO_VEICULO[number], string> = {
   truck: 'Truck',
   bitruck: 'Bitruck',

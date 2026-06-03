@@ -7,6 +7,7 @@ import {
   veiculoSchema, veiculoUpdateSchema,
   type VeiculoFormData, type VeiculoUpdateData,
 } from '@/lib/validations/veiculo'
+import { limites, type Plano } from '@/lib/plano'
 
 export type ActionResult<T = void> = { ok: true; data?: T } | { ok: false; error: string }
 
@@ -24,6 +25,23 @@ export async function criarVeiculo(data: VeiculoFormData): Promise<ActionResult<
   let tid: string
   try { tid = await getTransportadoraId(supabase) }
   catch (e) { return { ok: false, error: (e as Error).message } }
+
+  // Verificar limite de veículos do plano
+  const { data: transpData } = await supabase
+    .from('transportadoras').select('plano').eq('id', tid)
+    .returns<{ plano: Plano }[]>().maybeSingle()
+  if (transpData) {
+    const { count: total } = await supabase
+      .from('veiculos').select('id', { count: 'exact', head: true })
+      .eq('transportadora_id', tid).neq('status', 'inativo')
+    const max = limites(transpData.plano).veiculos
+    if (max !== Infinity && (total ?? 0) >= max) {
+      return {
+        ok: false,
+        error: `Seu plano permite até ${max} veículos ativos. Faça upgrade para cadastrar mais.`,
+      }
+    }
+  }
 
   const payload = { ...parsed.data, transportadora_id: tid } as never
   const { data: novo, error } = await supabase

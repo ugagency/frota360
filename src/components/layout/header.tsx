@@ -5,14 +5,13 @@ import { Bell } from 'lucide-react'
 import { UserNav } from '@/components/layout/user-nav'
 import { NAV_ITEMS } from '@/components/layout/nav-items'
 import { cn } from '@/lib/utils'
-
-type PlanoStatus = 'trial' | 'ativo' | 'cancelado' | 'inadimplente'
+import type { Plano } from '@/lib/plano'
 
 type Props = {
   userNome: string
   userEmail: string
-  plano: 'starter' | 'pro'
-  planoStatus: PlanoStatus
+  plano:       Plano
+  planoStatus: string
   alertasCriticos?: number
 }
 
@@ -22,11 +21,13 @@ const PAGE_TITLES: Record<string, string> = {
   '/motoristas':    'Motoristas',
   '/viagens':       'Viagens',
   '/manutencao':    'Manutenção',
+  '/checklists':    'Checklists',
   '/financeiro':    'Financeiro',
   '/relatorios':    'Relatórios',
   '/alertas':       'Alertas',
   '/assistente':    'Assistente IA',
   '/configuracoes': 'Configurações',
+  '/upgrade':       'Planos',
 }
 
 export function Header({ userNome, userEmail, plano, planoStatus, alertasCriticos = 0 }: Props) {
@@ -69,15 +70,19 @@ function resolveTitle(pathname: string): string {
   return match?.label ?? 'Frota 360'
 }
 
-function PlanBadge({ plano, status }: { plano: 'starter' | 'pro'; status: PlanoStatus }) {
-  const label = status === 'trial' ? 'TRIAL' : plano.toUpperCase()
+function PlanBadge({ plano, status }: { plano: Plano; status: string }) {
+  const label =
+    plano === 'demo'         ? 'DEMO' :
+    plano === 'basico'       ? 'BÁSICO' :
+    /* profissional */         'PRO'
+
   const cls = cn(
     'px-2 py-1 rounded text-[10px] font-mono font-medium tracking-wider border',
-    status === 'trial'         && 'bg-brand-surface text-brand-dark border-brand-border',
-    status === 'ativo' && plano === 'pro'     && 'bg-accent-surface text-accent border-accent-border',
-    status === 'ativo' && plano === 'starter' && 'bg-stone-100 text-stone-600 border-stone-200',
-    status === 'cancelado'     && 'bg-stone-100 text-stone-500 border-stone-200',
-    status === 'inadimplente'  && 'bg-red-50 text-red-700 border-red-200',
+    plano === 'demo'                      && 'bg-brand-surface text-brand-dark border-brand-border',
+    plano === 'basico'                    && 'bg-stone-100 text-stone-600 border-stone-200',
+    plano === 'profissional'              && 'bg-accent-surface text-accent border-accent-border',
+    status === 'inadimplente'             && 'bg-red-50 text-red-700 border-red-200',
+    status === 'cancelado'                && 'bg-stone-100 text-stone-500 border-stone-200',
   )
   return <span className={cls}>{label}</span>
 }

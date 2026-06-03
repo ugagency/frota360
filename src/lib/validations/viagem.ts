@@ -21,6 +21,14 @@ export const viagemCreateSchema = z.object({
   peso_ton:   z.number().min(0).optional().nullable(),
   cte_numero: z.string().optional().nullable(),
 
+  // Campos fiscais — Profissional (Feature 5)
+  cte_chave:   z.string().regex(/^\d{44}$/, 'Chave deve ter 44 dígitos').optional().nullable().or(z.literal('')),
+  cte_status:  z.enum(['pendente', 'emitido', 'cancelado']).default('pendente'),
+  mdfe_numero: z.string().optional().nullable(),
+  mdfe_chave:  z.string().regex(/^\d{44}$/, 'Chave deve ter 44 dígitos').optional().nullable().or(z.literal('')),
+  mdfe_status: z.enum(['pendente', 'emitido', 'encerrado', 'cancelado']).default('pendente'),
+  ciot_codigo: z.string().optional().nullable(),
+
   valor_frete:        z.number().min(0, 'Frete inválido'),
   valor_adiantamento: z.number().min(0).default(0),
 

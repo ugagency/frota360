@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 import {
   veiculoSchema, type VeiculoFormData,
   TIPO_VEICULO, TIPO_LABELS, MARCAS, PROPRIETARIO, PROPRIETARIO_LABELS,
+  CATEGORIA_VEICULO, CATEGORIA_LABELS,
 } from '@/lib/validations/veiculo'
 import { criarVeiculo, atualizarVeiculo } from '@/app/actions/veiculos'
 import { formatarPlaca, normalizarPlaca, parseKmInput, formatarKmInput } from '@/lib/format'
@@ -28,13 +29,15 @@ type Props = {
   veiculo?: Veiculo
   onSuccess?: (id?: string) => void
   onCancel?: () => void
+  plano?: 'demo' | 'basico' | 'profissional'
 }
 
 const anoAtual = new Date().getFullYear()
 
-export function VeiculoForm({ veiculo, onSuccess, onCancel }: Props) {
+export function VeiculoForm({ veiculo, onSuccess, onCancel, plano = 'demo' }: Props) {
   const isEdit = Boolean(veiculo?.id)
   const [submitting, setSubmitting] = useState(false)
+  const isPro = plano === 'profissional'
 
   const form = useForm<VeiculoFormData>({
     resolver: zodResolver(veiculoSchema),
@@ -53,6 +56,10 @@ export function VeiculoForm({ veiculo, onSuccess, onCancel }: Props) {
       km_proxima_revisao: veiculo?.km_proxima_revisao ?? undefined,
       data_proxima_revisao: veiculo?.data_proxima_revisao ?? '',
       observacoes: veiculo?.observacoes ?? '',
+      categoria_veiculo: (veiculo as any)?.categoria_veiculo ?? 'pesado',
+      seguro_apolice: (veiculo as any)?.seguro_apolice ?? '',
+      seguro_seguradora: (veiculo as any)?.seguro_seguradora ?? '',
+      seguro_validade: (veiculo as any)?.seguro_validade ?? '',
     },
   })
 
@@ -261,6 +268,64 @@ export function VeiculoForm({ veiculo, onSuccess, onCancel }: Props) {
                 </FormItem>
               )} />
             </div>
+          </Secao>
+
+          <Separator />
+
+          {/* CATEGORIA — para benchmark de custo/km (Pro) */}
+          <Secao titulo="Categoria do veículo">
+            <FormField control={form.control} name="categoria_veiculo" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Categoria (peso)</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    {CATEGORIA_VEICULO.map((c) => (
+                      <SelectItem key={c} value={c}>{CATEGORIA_LABELS[c]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+          </Secao>
+
+          <Separator />
+
+          {/* SEGURO — exclusivo plano Profissional */}
+          <Secao titulo={isPro ? 'Seguro obrigatório' : 'Seguro obrigatório (Profissional)'}>
+            {!isPro && (
+              <p className="text-xs text-ink-muted bg-app-subtle rounded px-3 py-2">
+                Alertas de vencimento de seguro disponíveis no plano Profissional.
+              </p>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              <FormField control={form.control} name="seguro_apolice" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Apólice</FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value ?? ''} placeholder="Nº da apólice" disabled={!isPro} />
+                  </FormControl>
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="seguro_seguradora" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Seguradora</FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value ?? ''} placeholder="Ex: Porto Seguro" disabled={!isPro} />
+                  </FormControl>
+                </FormItem>
+              )} />
+            </div>
+            <FormField control={form.control} name="seguro_validade" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Validade do seguro</FormLabel>
+                <FormControl>
+                  <Input type="date" value={field.value ?? ''} onChange={field.onChange} className="font-mono" disabled={!isPro} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
           </Secao>
 
           <Separator />

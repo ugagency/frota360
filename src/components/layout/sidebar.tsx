@@ -2,28 +2,30 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ChevronsLeft, ChevronsRight } from 'lucide-react'
+import { ChevronsLeft, ChevronsRight, Lock } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
 import { UserNav } from '@/components/layout/user-nav'
 import { useSidebar } from '@/lib/stores/sidebar'
 import { NAV_ITEMS, type NavItem } from '@/components/layout/nav-items'
+import { moduloDisponivel, type Plano } from '@/lib/plano'
 import { cn } from '@/lib/utils'
 
 type Props = {
   transportadoraNome: string
-  userNome: string
+  userNome:  string
   userEmail: string
+  plano:     Plano
+  diasRestantes: number | null
 }
 
-export function Sidebar({ transportadoraNome, userNome, userEmail }: Props) {
+export function Sidebar({ transportadoraNome, userNome, userEmail, plano, diasRestantes }: Props) {
   const { collapsed, toggle } = useSidebar()
   const pathname = usePathname()
 
-  // agrupa por seção preservando ordem
-  const dashboard   = NAV_ITEMS.filter((i) => !i.section && i.href === '/')
-  const operacoes   = NAV_ITEMS.filter((i) => i.section === 'OPERAÇÕES')
-  const gestao      = NAV_ITEMS.filter((i) => i.section === 'GESTÃO')
-  const config      = NAV_ITEMS.filter((i) => !i.section && i.href !== '/')
+  const dashboard = NAV_ITEMS.filter((i) => !i.section && i.href === '/')
+  const operacoes  = NAV_ITEMS.filter((i) => i.section === 'OPERAÇÕES')
+  const gestao     = NAV_ITEMS.filter((i) => i.section === 'GESTÃO')
+  const config     = NAV_ITEMS.filter((i) => !i.section && i.href !== '/')
 
   return (
     <aside
@@ -48,18 +50,22 @@ export function Sidebar({ transportadoraNome, userNome, userEmail }: Props) {
         )}
       </div>
 
+      {/* Transportadora + badge de plano */}
       {!collapsed && (
-        <div className="px-4 py-2 text-[11px] font-mono uppercase text-sidebar-text/70 truncate" title={transportadoraNome}>
-          {transportadoraNome}
+        <div className="px-4 py-2 space-y-1">
+          <p className="text-[11px] font-mono uppercase text-sidebar-text/70 truncate" title={transportadoraNome}>
+            {transportadoraNome}
+          </p>
+          <PlanoBadge plano={plano} diasRestantes={diasRestantes} />
         </div>
       )}
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-4">
-        <NavGroup items={dashboard}  pathname={pathname} collapsed={collapsed} />
-        <NavGroup items={operacoes}  pathname={pathname} collapsed={collapsed} label="OPERAÇÕES" />
-        <NavGroup items={gestao}     pathname={pathname} collapsed={collapsed} label="GESTÃO" />
-        <NavGroup items={config}     pathname={pathname} collapsed={collapsed} />
+        <NavGroup items={dashboard} pathname={pathname} collapsed={collapsed} plano={plano} />
+        <NavGroup items={operacoes} pathname={pathname} collapsed={collapsed} label="OPERAÇÕES" plano={plano} />
+        <NavGroup items={gestao}    pathname={pathname} collapsed={collapsed} label="GESTÃO"    plano={plano} />
+        <NavGroup items={config}    pathname={pathname} collapsed={collapsed} plano={plano} />
       </nav>
 
       {/* Footer */}
@@ -81,10 +87,36 @@ export function Sidebar({ transportadoraNome, userNome, userEmail }: Props) {
   )
 }
 
-// ---------------------------------------------------------------------
+// ------------------------------------------------------------------
+function PlanoBadge({ plano, diasRestantes }: { plano: Plano; diasRestantes: number | null }) {
+  if (plano === 'demo') {
+    return (
+      <span className="inline-flex items-center gap-1 text-[9px] font-mono uppercase
+                       bg-amber-900/40 text-amber-300 px-2 py-0.5 rounded tracking-wider">
+        Demo{diasRestantes !== null ? ` · ${diasRestantes}d` : ''}
+      </span>
+    )
+  }
+  if (plano === 'basico') {
+    return (
+      <span className="inline-flex items-center gap-1 text-[9px] font-mono uppercase
+                       bg-stone-700/40 text-stone-400 px-2 py-0.5 rounded tracking-wider">
+        Básico
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex items-center gap-1 text-[9px] font-mono uppercase
+                     bg-green-900/40 text-green-400 px-2 py-0.5 rounded tracking-wider">
+      Profissional
+    </span>
+  )
+}
+
+// ------------------------------------------------------------------
 function NavGroup({
-  items, pathname, collapsed, label,
-}: { items: NavItem[]; pathname: string; collapsed: boolean; label?: string }) {
+  items, pathname, collapsed, label, plano,
+}: { items: NavItem[]; pathname: string; collapsed: boolean; label?: string; plano: Plano }) {
   if (items.length === 0) return null
   return (
     <div className="space-y-1">
@@ -94,7 +126,8 @@ function NavGroup({
         </div>
       )}
       {items.map((it) => {
-        const active = it.href === '/' ? pathname === '/' : pathname.startsWith(it.href)
+        const active   = it.href === '/' ? pathname === '/' : pathname.startsWith(it.href)
+        const bloqueado = !moduloDisponivel(plano, it.modulo)
         const Icon = it.icon
         return (
           <Link
@@ -107,11 +140,17 @@ function NavGroup({
                 ? 'bg-sidebar-active text-sidebar-active-text font-medium'
                 : 'text-sidebar-text hover:bg-sidebar-hover hover:text-white',
               collapsed && 'justify-center',
+              bloqueado && 'opacity-40',
             )}
           >
             {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r bg-brand-dark" />}
             <Icon size={18} strokeWidth={2} className="shrink-0" />
-            {!collapsed && <span>{it.label}</span>}
+            {!collapsed && (
+              <>
+                <span className="flex-1">{it.label}</span>
+                {bloqueado && <Lock size={11} className="text-brand opacity-70 shrink-0" />}
+              </>
+            )}
           </Link>
         )
       })}

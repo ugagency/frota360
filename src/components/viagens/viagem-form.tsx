@@ -27,6 +27,7 @@ import {
 type Props = {
   veiculos:   VeiculoOption[]
   motoristas: MotoristaOption[]
+  plano?: 'demo' | 'basico' | 'profissional'
 }
 
 function nowLocalDateTime() {
@@ -35,7 +36,8 @@ function nowLocalDateTime() {
   return d.toISOString().slice(0, 16)
 }
 
-export function ViagemForm({ veiculos, motoristas }: Props) {
+export function ViagemForm({ veiculos, motoristas, plano = 'demo' }: Props) {
+  const isPro = plano === 'profissional'
   const router = useRouter()
   const [pending, startTransition] = useTransition()
 
@@ -60,6 +62,12 @@ export function ViagemForm({ veiculos, motoristas }: Props) {
       tipo_carga: '',
       peso_ton: undefined,
       cte_numero: '',
+      cte_chave: '',
+      cte_status: 'pendente',
+      mdfe_numero: '',
+      mdfe_chave: '',
+      mdfe_status: 'pendente',
+      ciot_codigo: '',
       valor_frete: 0,
       valor_adiantamento: 0,
       km_saida: 0,
@@ -227,12 +235,6 @@ export function ViagemForm({ veiculos, motoristas }: Props) {
               )} />
             </div>
 
-            <FormField control={form.control} name="cte_numero" render={({ field }) => (
-              <FormItem>
-                <FormLabel>CT-e</FormLabel>
-                <FormControl><Input {...field} value={field.value ?? ''} className="font-mono" placeholder="Número do CT-e" /></FormControl>
-              </FormItem>
-            )} />
           </Secao>
 
           <Separator />
@@ -267,6 +269,79 @@ export function ViagemForm({ veiculos, motoristas }: Props) {
                 </FormItem>
               )} />
             </div>
+          </Secao>
+
+          <Separator />
+
+          {/* DOCUMENTOS FISCAIS — Profissional */}
+          <Secao titulo={isPro ? 'Documentos fiscais' : 'Documentos fiscais (Profissional)'}>
+            {!isPro ? (
+              <p className="text-xs text-ink-muted bg-app-subtle rounded px-3 py-2">
+                CT-e, MDF-e e CIOT disponíveis no plano Profissional.
+              </p>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField control={form.control} name="cte_numero" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>CT-e número</FormLabel>
+                      <FormControl><Input {...field} value={field.value ?? ''} className="font-mono" placeholder="Número" /></FormControl>
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="cte_status" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status CT-e</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="pendente">Pendente</SelectItem>
+                          <SelectItem value="emitido">Emitido</SelectItem>
+                          <SelectItem value="cancelado">Cancelado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )} />
+                </div>
+
+                <FormField control={form.control} name="cte_chave" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Chave de acesso CT-e</FormLabel>
+                    <FormControl><Input {...field} value={field.value ?? ''} className="font-mono text-xs" placeholder="44 dígitos" maxLength={44} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField control={form.control} name="mdfe_numero" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>MDF-e número</FormLabel>
+                      <FormControl><Input {...field} value={field.value ?? ''} className="font-mono" placeholder="Número" /></FormControl>
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="mdfe_status" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status MDF-e</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="pendente">Pendente</SelectItem>
+                          <SelectItem value="emitido">Emitido</SelectItem>
+                          <SelectItem value="encerrado">Encerrado</SelectItem>
+                          <SelectItem value="cancelado">Cancelado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )} />
+                </div>
+
+                <FormField control={form.control} name="ciot_codigo" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CIOT</FormLabel>
+                    <FormControl><Input {...field} value={field.value ?? ''} className="font-mono" placeholder="Código CIOT" /></FormControl>
+                  </FormItem>
+                )} />
+              </>
+            )}
           </Secao>
 
           <Separator />

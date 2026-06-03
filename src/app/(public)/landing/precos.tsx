@@ -8,17 +8,20 @@ const E = [0.25, 0.1, 0.25, 1] as const
 
 const STARTER_ITEMS = [
   'Até 20 veículos',
-  'Todos os 6 módulos',
   '2 usuários',
+  'Frota + Motoristas + Viagens',
+  'Manutenção inclusa',
   'Suporte por e-mail',
 ]
 
 const PRO_ITEMS = [
   'Veículos ilimitados',
-  'Todos os módulos',
   'Usuários ilimitados',
+  'Todos os módulos',
   'Assistente IA',
-  'Relatórios avançados',
+  'Checklists com foto',
+  'Relatório para contador',
+  'CT-e / MDF-e / CIOT',
   'Suporte prioritário WhatsApp',
 ]
 
@@ -76,7 +79,7 @@ export function Precos() {
 
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto items-start">
-          {/* Starter */}
+          {/* Básico */}
           <motion.div
             initial={{ opacity: 0, y: 32, x: -16 }}
             whileInView={{ opacity: 1, y: 0, x: 0 }}
@@ -90,7 +93,7 @@ export function Precos() {
                 className="mb-5 uppercase tracking-[0.18em] text-[10px]"
                 style={{ fontFamily: 'Space Mono, monospace', color: '#E8871E' }}
               >
-                Starter
+                Básico
               </p>
               <div className="flex items-end gap-1.5 mb-1">
                 <span
@@ -102,7 +105,7 @@ export function Precos() {
                     color: '#FFFFFF',
                   }}
                 >
-                  R$ 197
+                  R$ 197,90
                 </span>
               </div>
               <p style={{ fontFamily: 'Saira, sans-serif', fontWeight: 300, fontSize: '0.9rem', color: '#E4E1D9' }}>
@@ -170,7 +173,7 @@ export function Precos() {
                     color: '#FFFFFF',
                   }}
                 >
-                  R$ 397
+                  R$ 447
                 </span>
               </div>
               <p style={{ fontFamily: 'Saira, sans-serif', fontWeight: 300, fontSize: '0.9rem', color: '#E4E1D9' }}>

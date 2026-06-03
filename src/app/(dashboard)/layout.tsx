@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { DashboardShell } from '@/components/layout/dashboard-shell'
+import { gerarAlertasSeNecessario } from '@/lib/alertas'
+import type { Plano } from '@/lib/plano'
 
 export const dynamic = 'force-dynamic'
 
@@ -8,7 +10,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Middleware já cobre isso, mas é defesa em profundidade
   if (!user) redirect('/login')
 
   const { data: vinculo } = await supabase
@@ -18,28 +19,34 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .returns<{ role: string; transportadora_id: string }[]>()
     .maybeSingle()
 
-  if (!vinculo) {
-    // Usuário existe mas não tem tenant — fluxo de signup interrompido.
-    // TODO Sprint 4: tela de recuperação / vincular a transportadora existente
-    redirect('/login')
+  if (!vinculo) redirect('/login')
+
+  type TranspRow = {
+    id: string; nome: string
+    plano: Plano; plano_status: string
+    plano_inicio: string | null; plano_validade: string | null
+    config: Record<string, unknown> | null
   }
 
   const { data: transp } = await supabase
     .from('transportadoras')
-    .select('id, nome, plano, plano_status')
+    .select('id, nome, plano, plano_status, plano_inicio, plano_validade, config')
     .eq('id', vinculo.transportadora_id)
-    .returns<{ id: string; nome: string; plano: 'starter' | 'pro'; plano_status: 'trial' | 'ativo' | 'cancelado' | 'inadimplente' }[]>()
+    .returns<TranspRow[]>()
     .single()
 
   if (!transp) redirect('/login')
+
   const userNome = (user.user_metadata?.nome as string | undefined) ?? user.email?.split('@')[0] ?? 'Usuário'
 
-  // Contagem de alertas críticos pendentes — RLS isola pelo tenant
-  const { count: alertasCriticos } = await supabase
-    .from('alertas')
-    .select('id', { count: 'exact', head: true })
-    .eq('status', 'pendente')
-    .eq('prioridade', 'critico')
+  const [{ count: alertasCriticos }] = await Promise.all([
+    supabase
+      .from('alertas')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'pendente')
+      .eq('prioridade', 'critico'),
+    gerarAlertasSeNecessario(supabase, transp.id, transp.config, transp.plano),
+  ])
 
   return (
     <DashboardShell
@@ -48,6 +55,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       transportadoraNome={transp.nome}
       plano={transp.plano}
       planoStatus={transp.plano_status}
+      planoValidade={transp.plano_validade}
       alertasCriticos={alertasCriticos ?? 0}
     >
       {children}

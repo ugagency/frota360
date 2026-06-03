@@ -4,7 +4,9 @@
 -- ============================================================
 
 -- 1. Atualizar enum de plano
+-- Remove tanto o constraint nomeado quanto o gerado automaticamente pelo Postgres
 ALTER TABLE transportadoras DROP CONSTRAINT IF EXISTS chk_plano;
+ALTER TABLE transportadoras DROP CONSTRAINT IF EXISTS transportadoras_plano_check;
 
 -- Migrar valores antigos antes de adicionar o novo constraint
 UPDATE transportadoras SET plano = 'profissional' WHERE plano = 'pro';

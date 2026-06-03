@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { AssistenteClient } from './assistente-client'
+import { ModuloBloqueado } from '@/components/plano/modulo-bloqueado'
+import { getPlanoTransportadora } from '@/lib/get-plano'
+import { moduloDisponivel } from '@/lib/plano'
 import type { Conversa, ChatMessage } from '@/lib/assistente/types'
 
 export const dynamic = 'force-dynamic'
@@ -13,6 +16,17 @@ type Row = {
 
 export default async function AssistentePage() {
   const supabase = createClient()
+
+  const plano = await getPlanoTransportadora()
+  if (!moduloDisponivel(plano, 'assistente')) {
+    return (
+      <ModuloBloqueado
+        nomeModulo="Assistente IA"
+        descricao='Consulte sua operação em linguagem natural. "Quantos veículos estão em viagem?" — resposta em segundos com dados reais.'
+      />
+    )
+  }
+
   const { data: { user } } = await supabase.auth.getUser()
 
   // RLS já garante isolamento. Limitamos a últimas 20.

@@ -1,6 +1,9 @@
 import Link from 'next/link'
 import { TrendingUp, TrendingDown, Equal, ChevronRight, type LucideIcon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { getPlanoTransportadora } from '@/lib/get-plano'
+import { moduloDisponivel } from '@/lib/plano'
+import { ModuloBloqueado } from '@/components/plano/modulo-bloqueado'
 
 import { Card } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -31,6 +34,17 @@ const NOMES_MES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set'
 
 export default async function FinanceiroPage({ searchParams }: { searchParams: SearchParams }) {
   const supabase = createClient()
+
+  const plano = await getPlanoTransportadora()
+  if (!moduloDisponivel(plano, 'financeiro')) {
+    return (
+      <ModuloBloqueado
+        nomeModulo="Financeiro"
+        descricao="Receitas, despesas, DRE simplificado e lançamentos por veículo. Exportação em CSV."
+      />
+    )
+  }
+
   const def = mesAtualISO()
   const de  = searchParams.de  ?? def.de
   const ate = searchParams.ate ?? def.ate

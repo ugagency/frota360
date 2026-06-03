@@ -1,6 +1,12 @@
 import Link from 'next/link'
 import { Truck, Route, Users, DollarSign, ChevronRight } from 'lucide-react'
 import { Card } from '@/components/ui/card'
+import { createClient } from '@/lib/supabase/server'
+import { getPlanoTransportadora } from '@/lib/get-plano'
+import { moduloDisponivel } from '@/lib/plano'
+import { ModuloBloqueado } from '@/components/plano/modulo-bloqueado'
+
+export const dynamic = 'force-dynamic'
 
 const RELATORIOS = [
   {
@@ -33,7 +39,18 @@ const RELATORIOS = [
   },
 ] as const
 
-export default function RelatoriosPage() {
+export default async function RelatoriosPage() {
+  const supabase = createClient()
+  const plano = await getPlanoTransportadora()
+  if (!moduloDisponivel(plano, 'relatorios')) {
+    return (
+      <ModuloBloqueado
+        nomeModulo="Relatórios"
+        descricao="Relatórios de frota, viagens, motoristas e custos com exportação CSV. Inclui DRE simplificado e custo/km."
+      />
+    )
+  }
+
   return (
     <div className="space-y-6">
       <header>

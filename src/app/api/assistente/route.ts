@@ -66,6 +66,17 @@ export async function POST(req: NextRequest) {
   try { tid = await getTransportadoraId(supabase) }
   catch { return NextResponse.json({ error: 'Sem transportadora vinculada' }, { status: 403 }) }
 
+  // Verificar plano — assistente é exclusivo do Profissional
+  const { data: transpPlano } = await supabase
+    .from('transportadoras').select('plano').eq('id', tid)
+    .returns<{ plano: string }[]>().maybeSingle()
+  if (transpPlano?.plano !== 'profissional') {
+    return NextResponse.json(
+      { error: 'O Assistente IA está disponível apenas no plano Profissional.' },
+      { status: 403 },
+    )
+  }
+
   // Parse do body
   let body: { messages?: ChatMessage[]; conversaId?: string | null }
   try { body = await req.json() }

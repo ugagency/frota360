@@ -2,6 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { ManutencaoFiltros } from '@/components/manutencao/manutencao-filtros'
 import { ManutencoesTabela, type ManutencaoLista } from '@/components/manutencao/manutencoes-tabela'
 import { ManutencaoFormSheet } from '@/components/manutencao/manutencao-form-sheet'
+import { ModuloBloqueado } from '@/components/plano/modulo-bloqueado'
+import { getPlanoTransportadora } from '@/lib/get-plano'
+import { moduloDisponivel } from '@/lib/plano'
 import type { VeiculoOption } from '@/components/manutencao/manutencao-form'
 
 export const dynamic = 'force-dynamic'
@@ -9,6 +12,16 @@ export const dynamic = 'force-dynamic'
 type SearchParams = { q?: string; tipo?: string; status?: string; de?: string; ate?: string }
 
 export default async function ManutencaoPage({ searchParams }: { searchParams: SearchParams }) {
+  const plano = await getPlanoTransportadora()
+  if (!moduloDisponivel(plano, 'manutencao')) {
+    return (
+      <ModuloBloqueado
+        nomeModulo="Manutenção"
+        descricao="Agenda preventiva por KM e data, registro de corretivas, laudos e controle de custos por veículo."
+      />
+    )
+  }
+
   const supabase = createClient()
 
   let query = supabase

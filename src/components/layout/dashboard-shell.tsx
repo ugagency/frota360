@@ -7,6 +7,7 @@ import { DemoExpirado } from '@/components/plano/demo-expirado'
 import { useSidebar } from '@/lib/stores/sidebar'
 import { diasRestantesDemo, type Plano } from '@/lib/plano'
 import { cn } from '@/lib/utils'
+import { usePathname } from 'next/navigation'
 
 type Props = {
   userNome:  string
@@ -25,13 +26,18 @@ export function DashboardShell({
   alertasCriticos, children,
 }: Props) {
   const { collapsed } = useSidebar()
+  const pathname = usePathname()
 
   const diasDemo = plano === 'demo'
     ? diasRestantesDemo({ plano, plano_status: planoStatus, plano_inicio: null, plano_validade: planoValidade })
     : null
 
+  // /upgrade sempre acessível — é exatamente onde o usuário escolhe o plano
   const expirado =
-    plano === 'demo' && planoValidade != null && new Date(planoValidade) < new Date()
+    plano === 'demo' &&
+    planoValidade != null &&
+    new Date(planoValidade) < new Date() &&
+    pathname !== '/upgrade'
 
   return (
     <div className="min-h-screen bg-app">

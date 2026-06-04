@@ -40,10 +40,7 @@ export async function criarConta(data: CriarContaInput): Promise<ActionResult> {
   const userId = created.user.id
 
   try {
-    // 2. Cria a transportadora
-    const trialEnds = new Date()
-    trialEnds.setDate(trialEnds.getDate() + 14)
-
+    // 2. Cria a transportadora (demo 7 dias — trigger set_demo_validade define plano_validade)
     const { data: transp, error: transpErr } = await admin
       .from('transportadoras')
       .insert({
@@ -52,9 +49,8 @@ export async function criarConta(data: CriarContaInput): Promise<ActionResult> {
         telefone: parsed.data.telefone ?? null,
         cidade: parsed.data.cidade,
         estado: parsed.data.estado,
-        plano: 'starter',
-        plano_status: 'trial',
-        trial_ends_at: trialEnds.toISOString(),
+        plano: 'demo',
+        plano_status: 'ativo',
       })
       .select('id')
       .single()

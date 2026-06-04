@@ -15,8 +15,8 @@ type Transp = {
   telefone: string | null
   cidade: string | null
   estado: string | null
-  plano: 'starter' | 'pro'
-  plano_status: 'trial' | 'ativo' | 'cancelado' | 'inadimplente'
+  plano: 'demo' | 'basico' | 'profissional'
+  plano_status: string
   trial_ends_at: string | null
   created_at: string
 }

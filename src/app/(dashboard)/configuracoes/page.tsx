@@ -2,6 +2,7 @@ import { Card } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
 import { getTransportadoraId } from '@/lib/tenant'
 import { TransportadoraForm } from '@/components/configuracoes/transportadora-form'
+import { PlanoSwitcher } from '@/components/configuracoes/plano-switcher'
 import { AvatarIniciais } from '@/components/motoristas/avatar-iniciais'
 import { Building2, Crown, Users } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
@@ -87,29 +88,17 @@ export default async function ConfiguracoesPage() {
 
       {/* Plano */}
       <Card className="bg-app-card p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Crown size={16} className="text-ink-muted" />
-          <h2 className="font-display text-xl font-semibold text-ink">Plano</h2>
+        <div className="flex items-center justify-between gap-2 mb-5">
+          <div className="flex items-center gap-2">
+            <Crown size={16} className="text-ink-muted" />
+            <h2 className="font-display text-xl font-semibold text-ink">Plano</h2>
+          </div>
+          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-medium uppercase border ${PLANO_CLS[t.plano_status] ?? ''}`}>
+            {t.plano_status}
+          </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Info label="Plano atual" value={t.plano.toUpperCase()} mono />
-          <Info label="Status" value={
-            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-medium uppercase border ${PLANO_CLS[t.plano_status]}`}>
-              {PLANO_LABEL[t.plano_status]}
-            </span>
-          } />
-          <Info
-            label={t.plano_status === 'trial' ? 'Trial expira em' : 'Cliente desde'}
-            value={t.plano_status === 'trial' && t.trial_ends_at ? formatDate(t.trial_ends_at) : formatDate(t.created_at)}
-            mono
-          />
-        </div>
-
-        <p className="mt-4 text-xs text-ink-muted border-t pt-3">
-          A gestão de assinatura (upgrade, cancelamento, faturas) será integrada via Mercado Pago em Sprint futura.
-          {/* TODO Sprint 10: integração Mercado Pago */}
-        </p>
+        <PlanoSwitcher planoAtual={t.plano} />
       </Card>
 
       {/* Equipe */}

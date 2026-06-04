@@ -181,7 +181,10 @@ function ChecklistForm({
           <FormField control={form.control} name="motorista_id" render={({ field }) => (
             <FormItem>
               <FormLabel>Motorista</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value ?? ''}>
+              <Select
+                onValueChange={(v) => field.onChange(v || null)}
+                value={field.value ?? undefined}
+              >
                 <FormControl><SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger></FormControl>
                 <SelectContent>
                   {motoristas.map((m) => <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>)}

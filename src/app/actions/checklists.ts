@@ -8,16 +8,23 @@ import { z } from 'zod'
 const itemSchema = z.object({
   nome:      z.string(),
   resultado: z.enum(['ok', 'nao_conforme', 'nao_verificado']),
-  observacao: z.string().optional().nullable(),
+  // string vazia → null no jsonb
+  observacao: z.string().optional().nullable().transform((v) => v || null),
 })
 
+// uuid opcional — trata string vazia e undefined como null
+const uuidOpt = z.preprocess(
+  (v) => (v === '' || v == null ? null : v),
+  z.string().uuid().nullable().optional(),
+)
+
 export const checklistSchema = z.object({
-  veiculo_id:      z.string().uuid('Selecione um veículo'),
-  motorista_id:    z.string().uuid().optional().nullable(),
-  tipo:            z.enum(['saida', 'chegada']),
-  data_realizacao: z.string().min(1),
-  itens:           z.array(itemSchema).min(1),
-  observacao_geral: z.string().optional().nullable(),
+  veiculo_id:       z.string().uuid('Selecione um veículo'),
+  motorista_id:     uuidOpt,
+  tipo:             z.enum(['saida', 'chegada']),
+  data_realizacao:  z.string().min(1, 'Informe a data'),
+  itens:            z.array(itemSchema).min(1, 'Adicione ao menos um item'),
+  observacao_geral: z.string().optional().nullable().transform((v) => v || null),
 })
 
 export type ChecklistFormData = z.infer<typeof checklistSchema>
@@ -32,7 +39,11 @@ function calcularStatusGeral(itens: ChecklistFormData['itens']): 'aprovado' | 'r
 
 export async function criarChecklist(data: ChecklistFormData): Promise<ActionResult<{ id: string }>> {
   const parsed = checklistSchema.safeParse(data)
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? 'Dados inválidos' }
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0]
+    const msg = issue ? `${issue.path.join('.')}: ${issue.message}` : 'Dados inválidos'
+    return { ok: false, error: msg }
+  }
 
   const supabase = createClient()
   let tid: string
@@ -42,18 +53,23 @@ export async function criarChecklist(data: ChecklistFormData): Promise<ActionRes
   const { data: { user } } = await supabase.auth.getUser()
   const status_geral = calcularStatusGeral(parsed.data.itens)
 
+  // Garante formato ISO completo para timestamptz
+  const dataISO = parsed.data.data_realizacao.length === 16
+    ? `${parsed.data.data_realizacao}:00`
+    : parsed.data.data_realizacao
+
   const { data: novo, error } = await supabase
     .from('checklists')
     .insert({
       transportadora_id: tid,
-      veiculo_id:       parsed.data.veiculo_id,
-      motorista_id:     parsed.data.motorista_id ?? null,
-      tipo:             parsed.data.tipo,
-      data_realizacao:  parsed.data.data_realizacao,
-      itens:            parsed.data.itens as never,
-      observacao_geral: parsed.data.observacao_geral ?? null,
+      veiculo_id:        parsed.data.veiculo_id,
+      motorista_id:      parsed.data.motorista_id ?? null,
+      tipo:              parsed.data.tipo,
+      data_realizacao:   dataISO,
+      itens:             parsed.data.itens as never,
+      observacao_geral:  parsed.data.observacao_geral ?? null,
       status_geral,
-      criado_por: user?.id ?? null,
+      criado_por:        user?.id ?? null,
     } as never)
     .select('id')
     .returns<{ id: string }[]>()
@@ -61,7 +77,6 @@ export async function criarChecklist(data: ChecklistFormData): Promise<ActionRes
 
   if (error || !novo) return { ok: false, error: error?.message ?? 'Falha ao criar checklist' }
 
-  // Gerar alerta se reprovado ou com ressalvas
   if (status_geral !== 'aprovado') {
     await supabase.from('alertas').insert({
       transportadora_id: tid,

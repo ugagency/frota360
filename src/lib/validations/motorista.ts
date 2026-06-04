@@ -5,6 +5,9 @@ export const CNH_CATEGORIAS = ['C', 'D', 'E'] as const
 export const TIPO_MOTORISTA = ['proprio', 'agregado'] as const
 export const STATUS_MOTORISTA = ['ativo', 'afastado', 'inativo'] as const
 
+// String vazia → null para campos de data opcionais
+const dateOpt = z.string().optional().nullable().transform((v) => v || null)
+
 const documentoSchema = z.object({
   tipo: z.string().min(1, 'Informe o tipo do documento'),
   validade: z.string().min(1, 'Informe a validade'),
@@ -18,10 +21,10 @@ export const motoristaSchema = z.object({
 
   cnh_numero: z.string().optional().nullable(),
   cnh_categoria: z.enum(CNH_CATEGORIAS).optional().nullable(),
-  cnh_validade: z.string().optional().nullable(),
+  cnh_validade: dateOpt,
 
-  mopp_validade: z.string().optional().nullable(),
-  nr_validade: z.string().optional().nullable(),
+  mopp_validade: dateOpt,
+  nr_validade:   dateOpt,
 
   documentos: z.array(documentoSchema).max(10, 'Máximo 10 documentos').default([]),
 })

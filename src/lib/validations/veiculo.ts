@@ -12,6 +12,9 @@ export const MARCAS = [
 
 const anoAtual = new Date().getFullYear()
 
+// Campos de data opcionais: string vazia → null (evita erro "invalid syntax for type date")
+const dateOpt = z.string().optional().nullable().transform((v) => v || null)
+
 // Base object — partial-safe for update schema
 const veiculoBase = z.object({
   placa: z
@@ -28,18 +31,18 @@ const veiculoBase = z.object({
 
   renavam: z.string().optional().nullable(),
   chassi: z.string().optional().nullable(),
-  data_licenciamento: z.string().optional().nullable(),
+  data_licenciamento: dateOpt,
 
   km_atual: z.number().min(0, 'KM não pode ser negativo'),
   km_proxima_revisao: z.number().min(0).optional().nullable(),
-  data_proxima_revisao: z.string().optional().nullable(),
+  data_proxima_revisao: dateOpt,
 
   observacoes: z.string().max(500, 'Máximo 500 caracteres').optional().nullable(),
 
   // Feature 1: Seguro (Profissional)
   seguro_apolice:    z.string().optional().nullable(),
   seguro_seguradora: z.string().optional().nullable(),
-  seguro_validade:   z.string().optional().nullable(),
+  seguro_validade:   dateOpt,
 
   // Feature 4: categoria para benchmark (Profissional)
   categoria_veiculo: z.enum(CATEGORIA_VEICULO).default('pesado'),

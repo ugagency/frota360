@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { DocumentoValidadeBadge } from '@/components/motoristas/documento-validade-badge'
 import { formatCurrency, formatDate, formatKm, getDaysUntil } from '@/lib/utils'
+import type { DestinoItem } from '@/lib/validations/viagem'
 
 export type VeiculoOption = {
   id: string
@@ -25,6 +26,7 @@ type Props = {
   motorista: MotoristaOption | null
   origem: string
   destino: string
+  destinos?: DestinoItem[]
   dataSaida: string
   dataChegada: string
   valorFrete: number
@@ -33,7 +35,7 @@ type Props = {
 }
 
 export function ViagemPreviewPanel({
-  veiculo, motorista, origem, destino, dataSaida, dataChegada,
+  veiculo, motorista, origem, destino, destinos = [], dataSaida, dataChegada,
   valorFrete, valorAdiantamento, cnhVencida,
 }: Props) {
   const pctAdiantamento = valorFrete > 0 ? (valorAdiantamento / valorFrete) * 100 : 0
@@ -83,10 +85,23 @@ export function ViagemPreviewPanel({
       {/* Rota */}
       <Section icone={MapPin} titulo="Rota">
         {origem || destino ? (
-          <div className="text-sm text-ink">
-            <div className="truncate">{origem || <Vazio>—</Vazio>}</div>
-            <div className="text-ink-muted text-xs">↓</div>
-            <div className="truncate">{destino || <Vazio>—</Vazio>}</div>
+          <div className="text-sm text-ink space-y-0.5">
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
+              <span className="truncate">{origem || '—'}</span>
+            </div>
+            {destinos.length > 0 ? destinos.map((d, i) => (
+              <div key={i} className="flex items-center gap-1.5 pl-0.5">
+                <div className={`w-2 h-2 rounded-full shrink-0 ${i === destinos.length - 1 ? 'bg-red-500' : 'bg-amber-400'}`} />
+                <span className="truncate text-xs">{d.cidade || <Vazio>—</Vazio>}</span>
+              </div>
+            )) : (
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+                <span className="truncate">{destino || <Vazio>—</Vazio>}</span>
+              </div>
+            )}
+            <p className="text-[10px] text-ink-muted pt-0.5">* Distância estimada não disponível. KM real informado ao encerrar.</p>
           </div>
         ) : <Vazio>Informe origem e destino</Vazio>}
       </Section>

@@ -7,12 +7,24 @@ export const TIPOS_CARGA = [
   'Perigosa', 'Viva', 'Veículos', 'Outro',
 ] as const
 
+export const destinoItemSchema = z.object({
+  ordem: z.number().int().min(1),
+  cidade: z.string().min(1),
+  cidade_label: z.string().optional().default(''),
+  observacao: z.string().optional().nullable().default(''),
+})
+
+export type DestinoItem = z.infer<typeof destinoItemSchema>
+
 export const viagemCreateSchema = z.object({
   veiculo_id:   z.string().uuid('Selecione um veículo'),
   motorista_id: z.string().uuid('Selecione um motorista'),
 
   origem:  z.string().min(3, 'Mínimo 3 caracteres'),
-  destino: z.string().min(3, 'Mínimo 3 caracteres'),
+  destino: z.string().min(1, 'Informe o destino'),
+
+  destinos: z.array(destinoItemSchema).optional().default([]),
+  distancia_km: z.number().int().min(0).optional().nullable(),
   data_saida:   z.string().min(1, 'Informe a data de saída'),
   data_chegada: z.string().min(1, 'Informe a previsão de chegada'),
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useMemo } from 'react'
+import { useState, useTransition, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -18,6 +18,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { CidadeAutocomplete } from '@/components/cidades/cidade-autocomplete'
+import { DestinosMultiplos } from './destinos-multiplos'
 
 import {
   ViagemPreviewPanel,
@@ -56,6 +58,8 @@ export function ViagemForm({ veiculos, motoristas, plano = 'demo' }: Props) {
       motorista_id: '',
       origem: '',
       destino: '',
+      destinos: [{ ordem: 1, cidade: '', cidade_label: '', observacao: '' }],
+      distancia_km: null,
       data_saida:   defaultSaida,
       data_chegada: defaultChegada,
       cliente: '',
@@ -79,6 +83,7 @@ export function ViagemForm({ veiculos, motoristas, plano = 'demo' }: Props) {
   const motoristaId = form.watch('motorista_id')
   const origem      = form.watch('origem')
   const destino     = form.watch('destino')
+  const destinos    = form.watch('destinos')
   const dataSaida   = form.watch('data_saida')
   const dataChegada = form.watch('data_chegada')
   const valorFrete  = form.watch('valor_frete') || 0
@@ -163,22 +168,25 @@ export function ViagemForm({ veiculos, motoristas, plano = 'demo' }: Props) {
 
           {/* ROTA */}
           <Secao titulo="Rota">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <FormField control={form.control} name="origem" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Origem *</FormLabel>
-                  <FormControl><Input {...field} placeholder="São Paulo/SP" /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
-              <FormField control={form.control} name="destino" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Destino *</FormLabel>
-                  <FormControl><Input {...field} placeholder="Belo Horizonte/MG" /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
-            </div>
+            <FormField control={form.control} name="origem" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Origem *</FormLabel>
+                <FormControl>
+                  <CidadeAutocomplete
+                    value={field.value}
+                    onChange={v => form.setValue('origem', v, { shouldValidate: true })}
+                    placeholder="Cidade de partida"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+
+            <FormItem>
+              <FormLabel>Destino(s) *</FormLabel>
+              <DestinosMultiplos control={form.control} setValue={form.setValue} />
+              <FormMessage>{form.formState.errors.destino?.message}</FormMessage>
+            </FormItem>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <FormField control={form.control} name="data_saida" render={({ field }) => (
@@ -381,6 +389,7 @@ export function ViagemForm({ veiculos, motoristas, plano = 'demo' }: Props) {
           motorista={motoristaSel}
           origem={origem}
           destino={destino}
+          destinos={destinos ?? []}
           dataSaida={dataSaida}
           dataChegada={dataChegada}
           valorFrete={valorFrete}

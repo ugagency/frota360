@@ -68,8 +68,14 @@ export async function criarViagem(data: ViagemCreateData): Promise<ActionResult<
   const numero = `VGM-${ano}-${String((count ?? 0) + 1).padStart(3, '0')}`
 
   // 4. INSERT viagem em_andamento
+  // Se destinos preenchidos, usar o último como destino principal
+  const destinoPrincipal = parsed.data.destinos && parsed.data.destinos.length > 0
+    ? parsed.data.destinos[parsed.data.destinos.length - 1].cidade
+    : parsed.data.destino
+
   const payload = {
     ...parsed.data,
+    destino: destinoPrincipal,
     transportadora_id: tid,
     numero,
     status: 'em_andamento' as const,
@@ -101,7 +107,7 @@ export async function criarViagem(data: ViagemCreateData): Promise<ActionResult<
     motorista_id: parsed.data.motorista_id,
     tipo: 'receita',
     categoria: 'frete',
-    descricao: `Frete ${numero} — ${parsed.data.origem} → ${parsed.data.destino}`,
+    descricao: `Frete ${numero} — ${parsed.data.origem} → ${destinoPrincipal}`,
     valor: parsed.data.valor_frete,
     data: new Date().toISOString().slice(0, 10),
   }]

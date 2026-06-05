@@ -10,11 +10,20 @@ import { formatCurrency, formatDate, formatKm } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
+type DestinoItem = {
+  ordem: number
+  cidade: string
+  cidade_label?: string
+  observacao?: string | null
+}
+
 type ViagemDetalhe = {
   id: string
   numero: string
   origem: string
   destino: string
+  destinos: DestinoItem[] | null
+  distancia_km: number | null
   cliente: string | null
   tipo_carga: string | null
   peso_ton: number | null
@@ -37,7 +46,7 @@ export default async function ViagemDetailPage({ params }: { params: { id: strin
   const { data: v } = await supabase
     .from('viagens')
     .select(`
-      id, numero, origem, destino, cliente, tipo_carga, peso_ton, cte_numero,
+      id, numero, origem, destino, destinos, distancia_km, cliente, tipo_carga, peso_ton, cte_numero,
       data_saida, data_chegada, data_chegada_real, km_saida, km_chegada,
       valor_frete, valor_adiantamento, status, observacoes,
       veiculos(id, placa, modelo, km_atual),
@@ -70,12 +79,21 @@ export default async function ViagemDetailPage({ params }: { params: { id: strin
             <h1 className="font-display text-3xl font-bold text-ink leading-none">{v.numero}</h1>
             <StatusBadge status={v.status} />
           </div>
-          <div className="flex items-center gap-2 text-lg font-medium text-ink">
-            <MapPin size={16} className="text-accent" />
+          <div className="flex items-center gap-2 text-lg font-medium text-ink flex-wrap">
+            <MapPin size={16} className="text-accent shrink-0" />
             <span>{v.origem}</span>
             <span className="text-ink-muted">→</span>
-            <MapPin size={16} className="text-brand" />
-            <span>{v.destino}</span>
+            <MapPin size={16} className="text-brand shrink-0" />
+            <span>
+              {v.destinos && v.destinos.length > 0
+                ? v.destinos[v.destinos.length - 1].cidade
+                : v.destino}
+            </span>
+            {v.destinos && v.destinos.length > 1 && (
+              <span className="text-xs font-normal text-ink-muted bg-app-subtle px-1.5 py-0.5 rounded">
+                +{v.destinos.length - 1} parada{v.destinos.length - 1 > 1 ? 's' : ''}
+              </span>
+            )}
           </div>
         </div>
 
@@ -134,6 +152,32 @@ export default async function ViagemDetailPage({ params }: { params: { id: strin
           ) : <p className="text-sm text-ink-muted">Motorista removido.</p>}
         </Card>
       </div>
+
+      {/* Rota com paradas */}
+      {v.destinos && v.destinos.length > 0 && (
+        <Card className="p-5 bg-app-card">
+          <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-ink-muted mb-4">Rota</h3>
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2 text-sm">
+              <div className="w-2.5 h-2.5 rounded-full bg-green-500 shrink-0" />
+              <span className="font-medium">{v.origem}</span>
+              <span className="text-xs text-ink-muted">Partida</span>
+            </div>
+            {v.destinos.map((d, i) => (
+              <div key={i} className="flex items-center gap-2 text-sm pl-0.5">
+                <div className={`w-2 h-2 rounded-full shrink-0 ${i === (v.destinos!.length - 1) ? 'bg-red-500' : 'bg-amber-400'}`} />
+                <span className="font-medium">{d.cidade}</span>
+                <span className="text-xs text-ink-muted">
+                  {i === (v.destinos!.length - 1) ? 'Destino final' : `Parada ${i + 1}`}
+                </span>
+                {d.observacao && (
+                  <span className="text-xs text-ink-muted">· {d.observacao}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Info grid */}
       <Card className="p-5 bg-app-card">

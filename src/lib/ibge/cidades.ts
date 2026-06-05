@@ -44,18 +44,23 @@ export async function getCidades(): Promise<CidadeOption[]> {
       carregandoPromise = null
       return cidadesCache
     })
+    .catch(err => {
+      carregandoPromise = null
+      throw err
+    })
 
   return carregandoPromise
 }
 
+function removerAcentos(s: string): string {
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+}
+
 export function filtrarCidades(cidades: CidadeOption[], query: string): CidadeOption[] {
   if (!query || query.length < 3) return []
-  const q = query.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  const q = removerAcentos(query)
   return cidades
-    .filter(c => {
-      const nome = c.municipio.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-      return nome.startsWith(q)
-    })
+    .filter(c => removerAcentos(c.municipio).startsWith(q))
     .slice(0, 10)
 }
 

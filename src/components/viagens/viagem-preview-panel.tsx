@@ -27,6 +27,7 @@ type Props = {
   origem: string
   destino: string
   destinos?: DestinoItem[]
+  distanciaKm?: number | null
   dataSaida: string
   dataChegada: string
   valorFrete: number
@@ -35,7 +36,7 @@ type Props = {
 }
 
 export function ViagemPreviewPanel({
-  veiculo, motorista, origem, destino, destinos = [], dataSaida, dataChegada,
+  veiculo, motorista, origem, destino, destinos = [], distanciaKm, dataSaida, dataChegada,
   valorFrete, valorAdiantamento, cnhVencida,
 }: Props) {
   const pctAdiantamento = valorFrete > 0 ? (valorAdiantamento / valorFrete) * 100 : 0
@@ -101,7 +102,13 @@ export function ViagemPreviewPanel({
                 <span className="truncate">{destino || <Vazio>—</Vazio>}</span>
               </div>
             )}
-            <p className="text-[10px] text-ink-muted pt-0.5">* Distância estimada não disponível. KM real informado ao encerrar.</p>
+            {distanciaKm ? (
+              <div className="flex justify-between text-xs pt-1 border-t mt-1">
+                <span className="text-ink-muted">Distância estimada</span>
+                <span className="font-mono font-medium">~{distanciaKm.toLocaleString('pt-BR')} km</span>
+              </div>
+            ) : null}
+            <p className="text-[10px] text-ink-muted pt-0.5">* Estimativa em linha reta. KM real ao encerrar.</p>
           </div>
         ) : <Vazio>Informe origem e destino</Vazio>}
       </Section>

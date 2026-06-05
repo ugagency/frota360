@@ -95,6 +95,22 @@ export function ViagemForm({ veiculos, motoristas, plano = 'demo' }: Props) {
   const cnhVencida = !!(motoristaSel?.cnh_validade && getDaysUntil(motoristaSel.cnh_validade) < 0)
   const desabilitar = pending || cnhVencida
 
+  // Calcular distância estimada via Nominatim quando origem e destino válidos
+  const [distanciaKm, setDistanciaKm] = useState<number | null>(null)
+  useEffect(() => {
+    const origemValida = origem?.includes('/')
+    const destinoValido = destino?.includes('/')
+    if (!origemValida || !destinoValido) { setDistanciaKm(null); return }
+    const ctrl = new AbortController()
+    fetch(`/api/distancia?q1=${encodeURIComponent(origem)}&q2=${encodeURIComponent(destino)}`, {
+      signal: ctrl.signal,
+    })
+      .then(r => r.json())
+      .then(d => { if (typeof d.km === 'number') setDistanciaKm(d.km) })
+      .catch(() => {})
+    return () => ctrl.abort()
+  }, [origem, destino])
+
   // pré-preenche km_saida ao selecionar veículo
   function onVeiculoChange(id: string) {
     form.setValue('veiculo_id', id)
@@ -394,6 +410,7 @@ export function ViagemForm({ veiculos, motoristas, plano = 'demo' }: Props) {
           origem={origem}
           destino={destino}
           destinos={destinos ?? []}
+          distanciaKm={distanciaKm}
           dataSaida={dataSaida}
           dataChegada={dataChegada}
           valorFrete={valorFrete}

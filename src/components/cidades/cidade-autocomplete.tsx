@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { MapPin, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import type { CidadeOption } from '@/lib/ibge/cidades'
 
@@ -24,113 +23,112 @@ export function CidadeAutocomplete({
   disabled,
   className,
 }: CidadeAutocompleteProps) {
-  const [input, setInput] = useState(value || '')
+  const [input, setInput] = useState('')
   const [sugestoes, setSugestoes] = useState<CidadeOption[]>([])
   const [aberto, setAberto] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [focado, setFocado] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>()
-  const selecionouRef = useRef(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  // Guarda o último value emitido por nós via onChange
+  const emittedRef = useRef<string>('')
+
+  // Só reseta o input quando o pai limpa o value externamente (ex: form.reset)
+  useEffect(() => {
+    if (!value && emittedRef.current) {
+      emittedRef.current = ''
+      setInput('')
+    }
+  }, [value])
 
   const buscar = useCallback(async (q: string) => {
     if (q.length < 3) { setSugestoes([]); setAberto(false); return }
     setLoading(true)
     try {
       const res = await fetch(`/api/cidades?q=${encodeURIComponent(q)}`)
+      if (!res.ok) throw new Error('erro')
       const data: CidadeOption[] = await res.json()
       setSugestoes(data)
-      if (!selecionouRef.current) setAberto(data.length > 0)
+      setAberto(data.length > 0)
+    } catch {
+      setSugestoes([])
+      setAberto(false)
     } finally {
       setLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    if (selecionouRef.current) { selecionouRef.current = false; return }
     clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => buscar(input), 200)
+    debounceRef.current = setTimeout(() => buscar(input), 300)
     return () => clearTimeout(debounceRef.current)
   }, [input, buscar])
 
+  // Fechar ao clicar fora
   useEffect(() => {
-    if (value !== undefined && value !== input) setInput(value)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value])
+    function handler(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setAberto(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   function selecionar(cidade: CidadeOption) {
-    selecionouRef.current = true
+    emittedRef.current = cidade.value
     setInput(cidade.label)
     onChange(cidade.value)
     setSugestoes([])
     setAberto(false)
   }
 
-  function onBlur() {
-    setFocado(false)
-    // Se o usuário digitou algo sem selecionar, preserve como texto livre
+  function handleBlur() {
     setTimeout(() => {
       setAberto(false)
-      if (input && !sugestoes.find(s => s.label === input || s.value === input)) {
+      // Fallback: se digitou sem selecionar da lista, emite texto livre
+      if (input && !emittedRef.current) {
+        emittedRef.current = input
         onChange(input)
       }
     }, 150)
   }
 
   return (
-    <Popover open={aberto && focado} onOpenChange={setAberto}>
-      <PopoverAnchor asChild>
-        <div className="relative">
-          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-          <Input
-            name={name}
-            value={input}
-            onChange={e => {
-              selecionouRef.current = false
-              setInput(e.target.value)
-              onChange('')
-            }}
-            onFocus={() => {
-              setFocado(true)
-              if (sugestoes.length > 0) setAberto(true)
-            }}
-            onBlur={onBlur}
-            placeholder={placeholder}
-            disabled={disabled}
-            className={cn('pl-9', className)}
-            autoComplete="off"
-          />
-          {loading && (
-            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />
-          )}
-        </div>
-      </PopoverAnchor>
-      <PopoverContent
-        className="p-1 w-[var(--radix-popover-trigger-width)]"
-        onOpenAutoFocus={e => e.preventDefault()}
-        side="bottom"
-        align="start"
-        sideOffset={4}
-      >
-        {sugestoes.length === 0 ? (
-          <p className="py-2 text-center text-xs text-muted-foreground">Nenhuma cidade encontrada</p>
-        ) : (
-          <ul role="listbox">
-            {sugestoes.map(cidade => (
-              <li
-                key={cidade.ibgeId}
-                role="option"
-                aria-selected={false}
-                onMouseDown={e => { e.preventDefault(); selecionar(cidade) }}
-                className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer text-sm hover:bg-accent hover:text-accent-foreground"
-              >
-                <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                <span className="flex-1 truncate">{cidade.municipio}</span>
-                <span className="text-xs text-muted-foreground font-mono">{cidade.estado}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </PopoverContent>
-    </Popover>
+    <div ref={containerRef} className={cn('relative', className)}>
+      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none z-10" />
+      <Input
+        name={name}
+        value={input}
+        onChange={e => {
+          const v = e.target.value
+          setInput(v)
+          emittedRef.current = '' // ao editar, descarta seleção anterior
+          onChange('')            // sinaliza campo inválido para validação
+        }}
+        onBlur={handleBlur}
+        placeholder={placeholder}
+        disabled={disabled}
+        className="pl-9"
+        autoComplete="off"
+      />
+      {loading && (
+        <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />
+      )}
+      {aberto && sugestoes.length > 0 && (
+        <ul className="absolute z-50 left-0 right-0 top-full mt-1 bg-popover border rounded-md shadow-md max-h-56 overflow-auto">
+          {sugestoes.map(cidade => (
+            <li
+              key={cidade.ibgeId}
+              onMouseDown={e => { e.preventDefault(); selecionar(cidade) }}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground"
+            >
+              <MapPin className="h-3 w-3 shrink-0 text-muted-foreground" />
+              <span className="flex-1 truncate">{cidade.municipio}</span>
+              <span className="text-xs text-muted-foreground font-mono">{cidade.estado}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }

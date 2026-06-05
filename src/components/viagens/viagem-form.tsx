@@ -182,11 +182,15 @@ export function ViagemForm({ veiculos, motoristas, plano = 'demo' }: Props) {
               </FormItem>
             )} />
 
-            <FormItem>
-              <FormLabel>Destino(s) *</FormLabel>
+            <div className="space-y-2">
+              <label className="text-sm font-medium leading-none">Destino(s) *</label>
               <DestinosMultiplos control={form.control} setValue={form.setValue} />
-              <FormMessage>{form.formState.errors.destino?.message}</FormMessage>
-            </FormItem>
+              {form.formState.errors.destino && (
+                <p className="text-[0.8rem] font-medium text-destructive">
+                  {form.formState.errors.destino.message}
+                </p>
+              )}
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <FormField control={form.control} name="data_saida" render={({ field }) => (

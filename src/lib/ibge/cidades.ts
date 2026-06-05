@@ -49,7 +49,7 @@ export async function getCidades(): Promise<CidadeOption[]> {
 }
 
 export function filtrarCidades(cidades: CidadeOption[], query: string): CidadeOption[] {
-  if (!query || query.length < 2) return []
+  if (!query || query.length < 3) return []
   const q = query.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
   return cidades
     .filter(c => {

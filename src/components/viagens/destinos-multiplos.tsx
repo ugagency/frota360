@@ -20,9 +20,10 @@ export function DestinosMultiplos({ control, setValue }: DestinosMultiplosProps)
   })
 
   function onCidadeChange(index: number, cidade: string) {
-    const current = fields[index]
-    update(index, { ...current, cidade, cidade_label: cidade })
-    // O destino principal é o último item
+    // String vazia = usuário ainda digitando; evitar update() que causaria re-render
+    // e resetaria o input do autocomplete via useEffect do value prop
+    if (!cidade) return
+    update(index, { ...fields[index], cidade, cidade_label: cidade })
     if (index === fields.length - 1) {
       setValue('destino', cidade, { shouldValidate: true })
     }

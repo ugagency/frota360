@@ -33,7 +33,7 @@ export function CidadeAutocomplete({
   const selecionouRef = useRef(false)
 
   const buscar = useCallback(async (q: string) => {
-    if (q.length < 2) { setSugestoes([]); setAberto(false); return }
+    if (q.length < 3) { setSugestoes([]); setAberto(false); return }
     setLoading(true)
     try {
       const res = await fetch(`/api/cidades?q=${encodeURIComponent(q)}`)

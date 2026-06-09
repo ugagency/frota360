@@ -68,18 +68,6 @@ export function Sidebar({ transportadoraNome, userNome, userEmail, plano, diasRe
         <NavGroup items={config}    pathname={pathname} collapsed={collapsed} plano={plano} />
       </nav>
 
-      {/* Dev-only: health check */}
-      {process.env.NODE_ENV === 'development' && !collapsed && (
-        <div className="px-3 pb-2">
-          <Link
-            href="/admin/health"
-            className="flex items-center gap-2 px-2 py-1.5 rounded text-[11px] font-mono text-sidebar-text/50 hover:text-sidebar-text hover:bg-sidebar-hover"
-          >
-            <span>⚙</span> Health Check
-          </Link>
-        </div>
-      )}
-
       {/* Footer */}
       <div className="border-t border-sidebar-border p-2">
         {collapsed ? (

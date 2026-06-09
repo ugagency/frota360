@@ -3,31 +3,9 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getTransportadoraId } from '@/lib/tenant'
-import { z } from 'zod'
+import { checklistSchema, type ChecklistFormData } from '@/lib/validations/checklist'
 
-const itemSchema = z.object({
-  nome:      z.string(),
-  resultado: z.enum(['ok', 'nao_conforme', 'nao_verificado']),
-  // string vazia → null no jsonb
-  observacao: z.string().optional().nullable().transform((v) => v || null),
-})
-
-// uuid opcional — trata string vazia e undefined como null
-const uuidOpt = z.preprocess(
-  (v) => (v === '' || v == null ? null : v),
-  z.string().uuid().nullable().optional(),
-)
-
-export const checklistSchema = z.object({
-  veiculo_id:       z.string().uuid('Selecione um veículo'),
-  motorista_id:     uuidOpt,
-  tipo:             z.enum(['saida', 'chegada']),
-  data_realizacao:  z.string().min(1, 'Informe a data'),
-  itens:            z.array(itemSchema).min(1, 'Adicione ao menos um item'),
-  observacao_geral: z.string().optional().nullable().transform((v) => v || null),
-})
-
-export type ChecklistFormData = z.infer<typeof checklistSchema>
+export type { ChecklistFormData }
 export type ActionResult<T = void> = { ok: true; data?: T } | { ok: false; error: string }
 
 function calcularStatusGeral(itens: ChecklistFormData['itens']): 'aprovado' | 'reprovado' | 'com_ressalvas' {

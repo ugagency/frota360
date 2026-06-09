@@ -12,7 +12,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Badge } from '@/components/ui/badge'
-import { criarChecklist, checklistSchema, type ChecklistFormData } from '@/app/actions/checklists'
+import { checklistSchema, type ChecklistFormData } from '@/lib/validations/checklist'
+import { criarChecklist } from '@/app/actions/checklists'
 
 const ITENS_PADRAO = [
   'Pneus (calibragem e estado)', 'Nível de óleo do motor', 'Nível de água do radiador',

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useMemo, useEffect } from 'react'
+import { useState, useTransition, useMemo, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -14,7 +14,6 @@ import { formatarKmInput, parseKmInput } from '@/lib/format'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -23,7 +22,7 @@ import { DestinosMultiplos } from './destinos-multiplos'
 
 import {
   ViagemPreviewPanel,
-  type VeiculoOption, type MotoristaOption,
+  type VeiculoOption, type MotoristaOption, type RotaInfo,
 } from './viagem-preview-panel'
 
 type Props = {
@@ -95,21 +94,50 @@ export function ViagemForm({ veiculos, motoristas, plano = 'demo' }: Props) {
   const cnhVencida = !!(motoristaSel?.cnh_validade && getDaysUntil(motoristaSel.cnh_validade) < 0)
   const desabilitar = pending || cnhVencida
 
-  // Calcular distância estimada via Nominatim quando origem e destino válidos
-  const [distanciaKm, setDistanciaKm] = useState<number | null>(null)
+  // Calcular rota OSRM + custo quando origem e destino válidos
+  const [rota, setRota] = useState<RotaInfo | null>(null)
+  const [rotaCalculando, setRotaCalculando] = useState(false)
+  const rotaDebounce = useRef<ReturnType<typeof setTimeout>>()
   useEffect(() => {
-    const origemValida = origem?.includes('/')
-    const destinoValido = destino?.includes('/')
-    if (!origemValida || !destinoValido) { setDistanciaKm(null); return }
-    const ctrl = new AbortController()
-    fetch(`/api/distancia?q1=${encodeURIComponent(origem)}&q2=${encodeURIComponent(destino)}`, {
-      signal: ctrl.signal,
-    })
-      .then(r => r.json())
-      .then(d => { if (typeof d.km === 'number') setDistanciaKm(d.km) })
-      .catch(() => {})
-    return () => ctrl.abort()
-  }, [origem, destino])
+    const destinosValidos = (destinos ?? []).filter(d => d.cidade?.includes('/'))
+    const origemValida   = origem?.includes('/')
+    if (!origemValida || destinosValidos.length === 0) {
+      setRota(null)
+      return
+    }
+    clearTimeout(rotaDebounce.current)
+    rotaDebounce.current = setTimeout(async () => {
+      setRotaCalculando(true)
+      try {
+        const res = await fetch('/api/rotas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            origem,
+            destinos: destinosValidos.map(d => d.cidade),
+            veiculo_id: veiculoId || undefined,
+          }),
+        })
+        if (!res.ok) return
+        const data: RotaInfo = await res.json()
+        setRota(data)
+        form.setValue('distancia_km', data.distancia_km)
+      } catch { /* silencioso */ }
+      finally { setRotaCalculando(false) }
+    }, 800)
+    return () => clearTimeout(rotaDebounce.current)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [origem, destino, (destinos ?? []).map(d => d.cidade).join('|'), veiculoId])
+
+  // Recalcula data_chegada sempre que rota ou data_saida mudarem
+  useEffect(() => {
+    if (!rota?.duracao_min || !dataSaida) return
+    const saida = new Date(dataSaida)
+    if (isNaN(saida.getTime())) return
+    const chegada = new Date(saida.getTime() + rota.duracao_min * 60 * 1000)
+    chegada.setMinutes(chegada.getMinutes() - chegada.getTimezoneOffset())
+    form.setValue('data_chegada', chegada.toISOString().slice(0, 16), { shouldValidate: true })
+  }, [rota, dataSaida]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // pré-preenche km_saida ao selecionar veículo
   function onVeiculoChange(id: string) {
@@ -218,7 +246,14 @@ export function ViagemForm({ veiculos, motoristas, plano = 'demo' }: Props) {
               )} />
               <FormField control={form.control} name="data_chegada" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Previsão de chegada *</FormLabel>
+                  <FormLabel>
+                    Previsão de chegada *
+                    {rota?.duracao_min && (
+                      <span className="ml-2 text-[10px] font-normal font-mono text-ink-muted normal-case tracking-normal">
+                        calculada pela rota
+                      </span>
+                    )}
+                  </FormLabel>
                   <FormControl><Input type="datetime-local" className="font-mono" value={field.value ?? ''} onChange={field.onChange} /></FormControl>
                   <FormMessage />
                 </FormItem>
@@ -410,7 +445,8 @@ export function ViagemForm({ veiculos, motoristas, plano = 'demo' }: Props) {
           origem={origem}
           destino={destino}
           destinos={destinos ?? []}
-          distanciaKm={distanciaKm}
+          rota={rota}
+          rotaCalculando={rotaCalculando}
           dataSaida={dataSaida}
           dataChegada={dataChegada}
           valorFrete={valorFrete}

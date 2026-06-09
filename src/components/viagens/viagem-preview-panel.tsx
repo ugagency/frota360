@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertTriangle, Truck, User, MapPin, DollarSign, Calendar, type LucideIcon } from 'lucide-react'
+import { AlertTriangle, Truck, User, MapPin, DollarSign, Calendar, Route, Clock, Loader2, type LucideIcon } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { DocumentoValidadeBadge } from '@/components/motoristas/documento-validade-badge'
@@ -21,13 +21,28 @@ export type MotoristaOption = {
   cnh_validade: string | null
 }
 
+export type RotaInfo = {
+  distancia_km: number
+  duracao_min: number
+  duracao_formatada: string
+  fonte: 'osrm' | 'estimativa_linear'
+  aviso?: string
+  custo: {
+    custo_total_estimado: number
+    custo_por_km: number
+    fonte: 'historico_veiculo' | 'benchmark'
+    aviso: string
+  }
+}
+
 type Props = {
   veiculo: VeiculoOption | null
   motorista: MotoristaOption | null
   origem: string
   destino: string
   destinos?: DestinoItem[]
-  distanciaKm?: number | null
+  rota?: RotaInfo | null
+  rotaCalculando?: boolean
   dataSaida: string
   dataChegada: string
   valorFrete: number
@@ -36,7 +51,9 @@ type Props = {
 }
 
 export function ViagemPreviewPanel({
-  veiculo, motorista, origem, destino, destinos = [], distanciaKm, dataSaida, dataChegada,
+  veiculo, motorista, origem, destino, destinos = [],
+  rota, rotaCalculando,
+  dataSaida, dataChegada,
   valorFrete, valorAdiantamento, cnhVencida,
 }: Props) {
   const pctAdiantamento = valorFrete > 0 ? (valorAdiantamento / valorFrete) * 100 : 0
@@ -87,6 +104,7 @@ export function ViagemPreviewPanel({
       <Section icone={MapPin} titulo="Rota">
         {origem || destino ? (
           <div className="text-sm text-ink space-y-0.5">
+            {/* Waypoints */}
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
               <span className="truncate">{origem || '—'}</span>
@@ -102,13 +120,65 @@ export function ViagemPreviewPanel({
                 <span className="truncate">{destino || <Vazio>—</Vazio>}</span>
               </div>
             )}
-            {distanciaKm ? (
-              <div className="flex justify-between text-xs pt-1 border-t mt-1">
-                <span className="text-ink-muted">Distância estimada</span>
-                <span className="font-mono font-medium">~{distanciaKm.toLocaleString('pt-BR')} km</span>
+
+            {/* Estado de cálculo */}
+            {rotaCalculando && (
+              <div className="flex items-center gap-1.5 pt-2 text-xs text-ink-muted">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Calculando rota…
               </div>
-            ) : null}
-            <p className="text-[10px] text-ink-muted pt-0.5">* Estimativa em linha reta. KM real ao encerrar.</p>
+            )}
+
+            {/* Métricas OSRM */}
+            {rota && !rotaCalculando && (
+              <div className="mt-2 space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-app-subtle rounded p-2">
+                    <div className="flex items-center gap-1 text-[9px] font-mono uppercase text-ink-muted mb-0.5">
+                      <Route className="h-2.5 w-2.5" /> Distância
+                    </div>
+                    <div className="font-mono font-bold text-sm">
+                      {rota.distancia_km.toLocaleString('pt-BR')} km
+                    </div>
+                    {rota.fonte === 'estimativa_linear' && (
+                      <div className="text-[9px] text-amber-600 mt-0.5">±15% estimado</div>
+                    )}
+                  </div>
+                  <div className="bg-app-subtle rounded p-2">
+                    <div className="flex items-center gap-1 text-[9px] font-mono uppercase text-ink-muted mb-0.5">
+                      <Clock className="h-2.5 w-2.5" /> Tempo
+                    </div>
+                    <div className="font-mono font-bold text-sm">{rota.duracao_formatada}</div>
+                    <div className="text-[9px] text-ink-muted mt-0.5">sem paradas</div>
+                  </div>
+                </div>
+
+                {/* Custo estimado */}
+                <div className="bg-amber-50 border border-amber-200 rounded p-2">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <div className="flex items-center gap-1 text-[9px] font-mono uppercase text-amber-700">
+                      <DollarSign className="h-2.5 w-2.5" /> Custo estimado
+                    </div>
+                    <span className="text-[9px] text-amber-600">
+                      {rota.custo.fonte === 'historico_veiculo' ? 'histórico' : 'benchmark'}
+                    </span>
+                  </div>
+                  <div className="font-mono font-bold text-base text-amber-800">
+                    {rota.custo.custo_total_estimado.toLocaleString('pt-BR', {
+                      style: 'currency', currency: 'BRL',
+                    })}
+                  </div>
+                  <div className="text-[9px] text-amber-600 mt-0.5">
+                    R${rota.custo.custo_por_km.toFixed(2)}/km
+                  </div>
+                </div>
+
+                <p className="text-[9px] text-ink-muted flex items-start gap-1">
+                  <AlertTriangle className="h-2.5 w-2.5 mt-0.5 shrink-0" />
+                  {rota.custo.aviso}
+                </p>
+              </div>
+            )}
           </div>
         ) : <Vazio>Informe origem e destino</Vazio>}
       </Section>

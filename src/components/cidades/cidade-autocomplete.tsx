@@ -6,6 +6,14 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import type { CidadeOption } from '@/lib/ibge/cidades'
 
+// Converte "São Paulo/SP" → "São Paulo - SP" para exibição no input
+function valorParaLabel(v: string): string {
+  if (!v) return ''
+  const slash = v.lastIndexOf('/')
+  if (slash === -1) return v
+  return `${v.slice(0, slash)} - ${v.slice(slash + 1)}`
+}
+
 interface CidadeAutocompleteProps {
   value?: string
   onChange: (value: string) => void
@@ -13,6 +21,7 @@ interface CidadeAutocompleteProps {
   name?: string
   disabled?: boolean
   className?: string
+  'data-testid'?: string
 }
 
 export function CidadeAutocomplete({
@@ -22,26 +31,34 @@ export function CidadeAutocomplete({
   name,
   disabled,
   className,
+  'data-testid': testId,
 }: CidadeAutocompleteProps) {
-  const [input, setInput] = useState('')
+  // Inicializa exibindo o label derivado do value (ex: re-mount após update())
+  const [input, setInput] = useState(() => valorParaLabel(value || ''))
   const [sugestoes, setSugestoes] = useState<CidadeOption[]>([])
   const [aberto, setAberto] = useState(false)
   const [loading, setLoading] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>()
   const containerRef = useRef<HTMLDivElement>(null)
-  // Guarda o último value emitido por nós via onChange
-  const emittedRef = useRef<string>('')
+  // Guarda o último value emitido via onChange para distinguir reset externo de edição
+  const emittedRef = useRef<string>(value || '')
 
-  // Só reseta o input quando o pai limpa o value externamente (ex: form.reset)
+  // Sincroniza quando o pai muda o value externamente (form reset, pré-preenchimento)
   useEffect(() => {
-    if (!value && emittedRef.current) {
+    if (value === emittedRef.current) return  // mudança causada por nós mesmos — ignorar
+    if (!value) {
+      // Pai limpou o campo (form.reset)
       emittedRef.current = ''
       setInput('')
+    } else {
+      // Pai definiu um valor externo (pré-fill, re-mount após update())
+      emittedRef.current = value
+      setInput(valorParaLabel(value))
     }
   }, [value])
 
   const buscar = useCallback(async (q: string) => {
-    if (q.length < 3) { setSugestoes([]); setAberto(false); return }
+    if (q.length < 2) { setSugestoes([]); setAberto(false); return }
     setLoading(true)
     try {
       const res = await fetch(`/api/cidades?q=${encodeURIComponent(q)}`)
@@ -85,7 +102,7 @@ export function CidadeAutocomplete({
   function handleBlur() {
     setTimeout(() => {
       setAberto(false)
-      // Fallback: se digitou sem selecionar da lista, emite texto livre
+      // Fallback: se o usuário digitou sem selecionar da lista, emite o texto como valor livre
       if (input && !emittedRef.current) {
         emittedRef.current = input
         onChange(input)
@@ -98,12 +115,13 @@ export function CidadeAutocomplete({
       <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none z-10" />
       <Input
         name={name}
+        data-testid={testId}
         value={input}
         onChange={e => {
           const v = e.target.value
           setInput(v)
           emittedRef.current = '' // ao editar, descarta seleção anterior
-          onChange('')            // sinaliza campo inválido para validação
+          onChange('')             // sinaliza valor pendente para o form
         }}
         onBlur={handleBlur}
         placeholder={placeholder}

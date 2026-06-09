@@ -1,4 +1,4 @@
-interface MunicipioIBGEApi {
+﻿interface MunicipioIBGEApi {
   id: number
   nome: string
   microrregiao: {
@@ -10,14 +10,14 @@ interface MunicipioIBGEApi {
         regiao: { sigla: string }
       }
     }
-  }
+  } | null
 }
 
 export interface CidadeOption {
-  value: string       // "São Paulo/SP"
-  label: string       // "São Paulo - SP"
-  municipio: string   // "São Paulo"
-  estado: string      // "SP"
+  value: string
+  label: string
+  municipio: string
+  estado: string
   ibgeId: number
 }
 
@@ -30,17 +30,18 @@ export async function getCidades(): Promise<CidadeOption[]> {
 
   carregandoPromise = fetch(
     'https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome',
-    { next: { revalidate: 86400 } },
   )
     .then(r => r.json() as Promise<MunicipioIBGEApi[]>)
     .then(data => {
-      cidadesCache = data.map(m => ({
-        value: `${m.nome}/${m.microrregiao.mesorregiao.UF.sigla}`,
-        label: `${m.nome} - ${m.microrregiao.mesorregiao.UF.sigla}`,
-        municipio: m.nome,
-        estado: m.microrregiao.mesorregiao.UF.sigla,
-        ibgeId: m.id,
-      }))
+      cidadesCache = data
+        .filter(m => m.microrregiao?.mesorregiao?.UF?.sigla)
+        .map(m => ({
+          value: m.nome + '/' + m.microrregiao!.mesorregiao.UF.sigla,
+          label: m.nome + ' - ' + m.microrregiao!.mesorregiao.UF.sigla,
+          municipio: m.nome,
+          estado: m.microrregiao!.mesorregiao.UF.sigla,
+          ibgeId: m.id,
+        }))
       carregandoPromise = null
       return cidadesCache
     })
@@ -53,15 +54,19 @@ export async function getCidades(): Promise<CidadeOption[]> {
 }
 
 function removerAcentos(s: string): string {
-  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 }
 
 export function filtrarCidades(cidades: CidadeOption[], query: string): CidadeOption[] {
-  if (!query || query.length < 3) return []
+  if (!query || query.length < 2) return []
   const q = removerAcentos(query)
-  return cidades
-    .filter(c => removerAcentos(c.municipio).startsWith(q))
-    .slice(0, 10)
+  const starts = cidades.filter(c => removerAcentos(c.municipio).startsWith(q))
+  if (starts.length >= 5) return starts.slice(0, 10)
+  const seen = new Set(starts.map(c => c.ibgeId))
+  const contains = cidades.filter(c =>
+    !seen.has(c.ibgeId) && removerAcentos(c.municipio).includes(q),
+  )
+  return [...starts, ...contains].slice(0, 10)
 }
 
 export function calcularDistanciaKm(

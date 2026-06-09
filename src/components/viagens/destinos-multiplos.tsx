@@ -14,23 +14,24 @@ interface DestinosMultiplosProps {
 }
 
 export function DestinosMultiplos({ control, setValue }: DestinosMultiplosProps) {
-  const { fields, append, remove, update } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control,
     name: 'destinos',
   })
 
   function onCidadeChange(index: number, cidade: string) {
-    // String vazia = usuário ainda digitando; evitar update() que causaria re-render
-    // e resetaria o input do autocomplete via useEffect do value prop
     if (!cidade) return
-    update(index, { ...fields[index], cidade, cidade_label: cidade })
+    // Usa setValue em vez de update() para NÃO gerar novo id no useFieldArray.
+    // update() gera novo id → React desmonta + remonta CidadeAutocomplete → estado local (input) é perdido.
+    setValue(`destinos.${index}.cidade` as 'destinos.0.cidade', cidade)
+    setValue(`destinos.${index}.cidade_label` as 'destinos.0.cidade_label', cidade)
     if (index === fields.length - 1) {
       setValue('destino', cidade, { shouldValidate: true })
     }
   }
 
   function onObservacaoChange(index: number, obs: string) {
-    update(index, { ...fields[index], observacao: obs })
+    setValue(`destinos.${index}.observacao` as 'destinos.0.observacao', obs)
   }
 
   function adicionarParada() {
@@ -39,10 +40,8 @@ export function DestinosMultiplos({ control, setValue }: DestinosMultiplosProps)
 
   function remover(index: number) {
     remove(index)
-    // Atualiza destino principal após remoção
-    const restantes = fields.filter((_, i) => i !== index)
-    const ultimo = restantes[restantes.length - 1]
-    setValue('destino', ultimo?.cidade ?? '', { shouldValidate: true })
+    const novoUltimo = fields[fields.length - 2]
+    setValue('destino', novoUltimo?.cidade ?? '', { shouldValidate: true })
   }
 
   return (

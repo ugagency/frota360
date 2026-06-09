@@ -7,11 +7,16 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const q = searchParams.get('q') ?? ''
 
-  if (!q || q.length < 3) {
+  if (!q || q.length < 2) {
     return NextResponse.json([])
   }
 
-  const cidades = await getCidades()
-  const resultados = filtrarCidades(cidades, q)
-  return NextResponse.json(resultados)
+  try {
+    const cidades = await getCidades()
+    const resultados = filtrarCidades(cidades, q)
+    return NextResponse.json(resultados)
+  } catch (err) {
+    console.error('[/api/cidades] erro ao buscar cidades:', err)
+    return NextResponse.json([], { status: 200 }) // retorna vazio em vez de 500
+  }
 }

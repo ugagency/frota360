@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronRight, MapPin, Phone, Truck, User } from 'lucide-react'
+import { ChevronRight, MapPin, Phone, Route, Truck, User } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/server'
 import { Card } from '@/components/ui/card'
@@ -46,7 +46,8 @@ export default async function ViagemDetailPage({ params }: { params: { id: strin
   const { data: v } = await supabase
     .from('viagens')
     .select(`
-      id, numero, origem, destino, destinos, distancia_km, cliente, tipo_carga, peso_ton, cte_numero,
+      id, numero, origem, destino, destinos, distancia_km,
+      cliente, tipo_carga, peso_ton, cte_numero,
       data_saida, data_chegada, data_chegada_real, km_saida, km_chegada,
       valor_frete, valor_adiantamento, status, observacoes,
       veiculos(id, placa, modelo, km_atual),
@@ -175,6 +176,15 @@ export default async function ViagemDetailPage({ params }: { params: { id: strin
                 )}
               </div>
             ))}
+            {v.distancia_km && (
+              <div className="flex items-center gap-1.5 pt-3 mt-1 border-t text-sm text-ink-muted">
+                <Route size={13} />
+                <span className="font-mono font-medium text-ink">
+                  {Number(v.distancia_km).toLocaleString('pt-BR')} km
+                </span>
+                <span className="text-xs">estimado</span>
+              </div>
+            )}
           </div>
         </Card>
       )}

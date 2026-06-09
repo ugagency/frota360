@@ -27,7 +27,7 @@ export function diasRestantesDemo(t: TransportadoraPlano): number | null {
 }
 
 // Módulos por plano
-const MODULOS_DEMO      = new Set(['frota', 'motoristas', 'viagens', 'configuracoes', 'alertas'])
+const MODULOS_DEMO      = new Set(['frota', 'motoristas', 'viagens', 'configuracoes', 'alertas', 'admin'])
 const MODULOS_BASICO    = new Set([...MODULOS_DEMO, 'manutencao'])
 const MODULOS_PRO       = new Set([...MODULOS_BASICO, 'financeiro', 'relatorios', 'assistente', 'checklists'])
 
@@ -75,4 +75,5 @@ export const MODULO_POR_HREF: Record<string, string> = {
   '/configuracoes':'configuracoes',
   '/alertas':      'alertas',
   '/checklists':   'checklists',
+  '/admin/health': 'admin',
 }

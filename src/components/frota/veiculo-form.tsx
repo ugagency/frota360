@@ -118,8 +118,8 @@ export function VeiculoForm({ veiculo, onSuccess, onCancel, plano = 'demo' }: Pr
                       carreta: 'carreta', 'semi-reboque': 'carreta', reboque: 'carreta',
                       'caminhão': 'truck', caminhao: 'truck', cavalo: 'truck',
                     }
-                    const mapped = Object.entries(mapa).find(([k]) => t.includes(k))?.[1]
-                    if (mapped) form.setValue('tipo', mapped as typeof TIPO_VEICULO[number])
+                    const mapped = Object.entries(mapa).find(([k]) => t.includes(k))?.[1] ?? 'outros'
+                    form.setValue('tipo', mapped as typeof TIPO_VEICULO[number])
                   }
                   form.trigger(['placa', 'marca', 'modelo', 'ano'])
                 }}

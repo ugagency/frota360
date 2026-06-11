@@ -543,6 +543,75 @@ export type Database = {
           },
         ]
       }
+      clientes: {
+        Row: {
+          id: string
+          transportadora_id: string
+          razao_social: string
+          cnpj: string | null
+          telefone: string | null
+          email: string | null
+          cidade: string | null
+          estado: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          transportadora_id: string
+          razao_social: string
+          cnpj?: string | null
+          telefone?: string | null
+          email?: string | null
+          cidade?: string | null
+          estado?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          transportadora_id?: string
+          razao_social?: string
+          cnpj?: string | null
+          telefone?: string | null
+          email?: string | null
+          cidade?: string | null
+          estado?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      importacoes: {
+        Row: {
+          id: string
+          transportadora_id: string
+          criado_por: string | null
+          entidade: string
+          total_linhas: number
+          importados: number
+          erros: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          transportadora_id: string
+          criado_por?: string | null
+          entidade: string
+          total_linhas?: number
+          importados?: number
+          erros?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          transportadora_id?: string
+          criado_por?: string | null
+          entidade?: string
+          total_linhas?: number
+          importados?: number
+          erros?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

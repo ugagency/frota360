@@ -55,7 +55,6 @@ export default async function ConfiguracoesPage() {
       .eq('id', tid)
       .returns<Transp[]>()
       .single(),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any).rpc('get_membros_transportadora', { p_transportadora_id: tid }) as Promise<{ data: Membro[] | null }>,
     supabase.auth.getUser(),
   ])

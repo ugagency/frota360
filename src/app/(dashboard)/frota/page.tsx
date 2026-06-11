@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { FrotaFiltros } from '@/components/frota/frota-filtros'
 import { FrotaTabela, type VeiculoLista } from '@/components/frota/frota-tabela'
 import { VeiculoFormSheet } from '@/components/frota/veiculo-form-sheet'
+import { ImportacaoDialog } from '@/components/importacao/importacao-dialog'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,7 +47,10 @@ export default async function FrotaPage({ searchParams }: { searchParams: Search
             {count ?? 0} {count === 1 ? 'veículo cadastrado' : 'veículos cadastrados'}
           </p>
         </div>
-        <VeiculoFormSheet mode="create" onSavedNavigate />
+        <div className="flex items-center gap-2">
+          <ImportacaoDialog entidade="veiculos" />
+          <VeiculoFormSheet mode="create" onSavedNavigate />
+        </div>
       </header>
 
       <FrotaFiltros />

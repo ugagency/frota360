@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { MotoristasFiltros } from '@/components/motoristas/motoristas-filtros'
 import { MotoristasTabela, type MotoristaLista } from '@/components/motoristas/motoristas-tabela'
 import { MotoristaFormSheet } from '@/components/motoristas/motorista-form-sheet'
+import { ImportacaoDialog } from '@/components/importacao/importacao-dialog'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,7 +47,10 @@ export default async function MotoristasPage({ searchParams }: { searchParams: S
             {count ?? 0} {count === 1 ? 'motorista cadastrado' : 'motoristas cadastrados'}
           </p>
         </div>
-        <MotoristaFormSheet mode="create" onSavedNavigate />
+        <div className="flex items-center gap-2">
+          <ImportacaoDialog entidade="motoristas" />
+          <MotoristaFormSheet mode="create" onSavedNavigate />
+        </div>
       </header>
 
       <MotoristasFiltros />

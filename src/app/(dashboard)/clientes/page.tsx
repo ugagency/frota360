@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Card } from '@/components/ui/card'
 import { ClientesTabela, type ClienteLista } from '@/components/clientes/clientes-tabela'
 import { ClienteFormSheet } from '@/components/clientes/cliente-form-sheet'
+import { ImportacaoDialog } from '@/components/importacao/importacao-dialog'
 
 export const dynamic = 'force-dynamic'
 
@@ -61,6 +62,7 @@ export default async function ClientesPage({ searchParams }: { searchParams: Sea
           >
             <TrendingUp size={16} /> Rentabilidade
           </Link>
+          <ImportacaoDialog entidade="clientes" />
           <ClienteFormSheet mode="create" onSavedNavigate />
         </div>
       </header>

@@ -87,7 +87,14 @@ export async function POST(req: NextRequest) {
     )
 
     if (!resp.ok) {
-      console.error('[OCR] Gemini error:', await resp.text())
+      const errText = await resp.text()
+      console.error('[OCR] Gemini error:', errText)
+      if (resp.status === 503 || resp.status === 429) {
+        return NextResponse.json(
+          { ok: false, error: 'Serviço sobrecarregado. Aguarde alguns segundos e tente novamente.' },
+          { status: 503 },
+        )
+      }
       return NextResponse.json({ ok: false, error: 'Erro ao processar documento.' }, { status: 500 })
     }
 

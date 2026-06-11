@@ -36,7 +36,7 @@ export function OCRUpload({ tipo, onExtraido, className, compact }: Props) {
       fd.append('tipo', tipo)
 
       const res  = await fetch('/api/ocr', { method: 'POST', body: fd })
-      const json = await res.json()
+      const json = await res.json().catch(() => ({ ok: false, error: 'Resposta inválida do servidor.' }))
 
       if (!json.ok) {
         setErro(json.error ?? 'Erro ao processar.')

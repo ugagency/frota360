@@ -132,8 +132,8 @@ export async function buscarCNPJ(cnpj: string): Promise<CNPJaResult> {
     const telefone: string | null = fone
       ? `(${fone.area}) ${String(fone.number).replace(/^(\d{4,5})(\d{4})$/, '$1-$2')}`
       : null
-    const cidade: string | null = json?.address?.municipality
-      ? toTitleCase(json.address.municipality)
+    const cidade: string | null = json?.address?.city
+      ? toTitleCase(json.address.city)
       : null
     const estado: string | null = json?.address?.state ?? null
 

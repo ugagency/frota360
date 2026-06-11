@@ -119,7 +119,7 @@ export default async function RentabilidadePage() {
             <TrendingUp size={28} />
           </div>
           <div className="font-display text-lg font-semibold text-ink">Nenhuma viagem concluída encontrada.</div>
-          <div className="mt-1 text-sm text-ink-secondary">Conclua viagens com o campo "cliente" preenchido para ver o ranking.</div>
+          <div className="mt-1 text-sm text-ink-secondary">Conclua viagens com o campo &quot;cliente&quot; preenchido para ver o ranking.</div>
         </Card>
       ) : (
         <Card className="bg-app-card overflow-hidden">

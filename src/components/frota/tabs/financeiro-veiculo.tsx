@@ -70,7 +70,7 @@ export async function FinanceiroVeiculoTab({ veiculoId }: { veiculoId: string })
         <KpiSimple label="Receitas"       value={formatCurrency(receitas)} tone="accent" />
         <KpiSimple label="Despesas"       value={formatCurrency(despesas)} tone="danger" />
         <KpiSimple label="Resultado"      value={formatCurrency(resultado)} tone={resultado >= 0 ? 'accent' : 'danger'} />
-        <KpiSimple label="Custo / KM"     value={kmTotal > 0 ? formatCurrency(custoPorKm) : '—'} tone="neutral"
+        <KpiSimple label="Custo por quilômetro" value={kmTotal > 0 ? formatCurrency(custoPorKm) : '—'} tone="neutral"
                     hint={`KM rodado: ${formatKm(kmTotal)}`} />
       </div>
 

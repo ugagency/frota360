@@ -18,6 +18,7 @@ export type ViagemLista = {
   data_saida: string | null
   data_chegada: string | null
   valor_frete: number | null
+  km_saida: number | null
   status: StatusValue
   veiculos: { placa: string; modelo: string | null } | null
   motoristas: { nome: string } | null
@@ -29,7 +30,7 @@ export function ViagensTabela({ viagens }: { viagens: ViagemLista[] }) {
 
   return (
     <div className="rounded-md border bg-app-card overflow-hidden">
-      <Table>
+      <Table className="min-w-[640px]">
         <TableHeader>
           <TableRow className="bg-app-subtle/40 hover:bg-app-subtle/40">
             {['Nº', 'Veículo', 'Motorista', 'Rota', 'Saída', 'Chegada', 'Frete', 'Status', 'Ações'].map((h, i) => (

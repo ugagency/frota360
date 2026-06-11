@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { mensagemAmigavel } from '@/lib/errors'
 import { criarContaSchema, type CriarContaInput } from '@/lib/validations/auth'
 
 export type ActionResult = { ok: true } | { ok: false; error: string }
@@ -34,7 +35,7 @@ export async function criarConta(data: CriarContaInput): Promise<ActionResult> {
     if (msg.toLowerCase().includes('already')) {
       return { ok: false, error: 'Já existe uma conta com esse e-mail.' }
     }
-    return { ok: false, error: msg }
+    return { ok: false, error: mensagemAmigavel(msg) }
   }
 
   const userId = created.user.id
@@ -77,7 +78,7 @@ export async function criarConta(data: CriarContaInput): Promise<ActionResult> {
   } catch (e) {
     // Rollback: remove o user pra liberar o e-mail e o usuário poder tentar de novo
     await admin.auth.admin.deleteUser(userId)
-    return { ok: false, error: e instanceof Error ? e.message : 'Falha ao concluir cadastro' }
+    return { ok: false, error: mensagemAmigavel(e instanceof Error ? e.message : 'Falha ao concluir cadastro') }
   }
 
   return { ok: true }

@@ -13,6 +13,7 @@ import { FinanceiroFiltros } from '@/components/financeiro/financeiro-filtros'
 import { LancamentosTabela, type LancamentoRow } from '@/components/financeiro/lancamentos-tabela'
 import { LancamentoFormSheet } from '@/components/financeiro/lancamento-form-sheet'
 import { formatCurrency, formatKm, cn } from '@/lib/utils'
+import { formatarPeriodo } from '@/lib/format'
 import { CATEGORIA_LABEL } from '@/lib/validations/financeiro'
 
 export const dynamic = 'force-dynamic'
@@ -40,7 +41,7 @@ export default async function FinanceiroPage({ searchParams }: { searchParams: S
     return (
       <ModuloBloqueado
         nomeModulo="Financeiro"
-        descricao="Receitas, despesas, DRE simplificado e lançamentos por veículo. Exportação em CSV."
+        descricao="Receitas, despesas, resultado financeiro do período e lançamentos por veículo. Exportação em CSV."
       />
     )
   }
@@ -172,7 +173,7 @@ export default async function FinanceiroPage({ searchParams }: { searchParams: S
       <header className="flex items-end justify-between gap-4 flex-wrap">
         <div>
           <h1 className="font-display text-3xl font-semibold text-ink leading-none">Financeiro</h1>
-          <p className="mt-1.5 text-sm text-ink-muted font-mono">Período: {formatPeriodo(de, ate)}</p>
+          <p className="mt-1.5 text-sm text-ink-muted font-mono">Período: {formatarPeriodo(de, ate)}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <PeriodoPicker />
@@ -228,7 +229,7 @@ export default async function FinanceiroPage({ searchParams }: { searchParams: S
                 <TableHead className="font-mono text-[11px] uppercase text-ink-muted">Modelo</TableHead>
                 <TableHead className="font-mono text-[11px] uppercase text-ink-muted text-right">Despesas</TableHead>
                 <TableHead className="font-mono text-[11px] uppercase text-ink-muted">Principal categoria</TableHead>
-                <TableHead className="font-mono text-[11px] uppercase text-ink-muted text-right">Custo/KM</TableHead>
+                <TableHead className="font-mono text-[11px] uppercase text-ink-muted text-right">Custo por km</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -302,11 +303,6 @@ function ResumoCard({ label, value, tone, icon: Icon, extra }: {
       </div>
     </Card>
   )
-}
-
-function formatPeriodo(de: string, ate: string) {
-  const d = new Date(de), a = new Date(ate)
-  return `${d.toLocaleDateString('pt-BR')} — ${a.toLocaleDateString('pt-BR')}`
 }
 
 // suprime warning de ícone não usado quando resultado=0

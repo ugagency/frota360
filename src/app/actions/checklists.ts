@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getTransportadoraId } from '@/lib/tenant'
+import { mensagemAmigavel } from '@/lib/errors'
 import { checklistSchema, type ChecklistFormData } from '@/lib/validations/checklist'
 
 export type { ChecklistFormData }
@@ -18,9 +19,7 @@ function calcularStatusGeral(itens: ChecklistFormData['itens']): 'aprovado' | 'r
 export async function criarChecklist(data: ChecklistFormData): Promise<ActionResult<{ id: string }>> {
   const parsed = checklistSchema.safeParse(data)
   if (!parsed.success) {
-    const issue = parsed.error.issues[0]
-    const msg = issue ? `${issue.path.join('.')}: ${issue.message}` : 'Dados inválidos'
-    return { ok: false, error: msg }
+    return { ok: false, error: mensagemAmigavel(parsed.error.issues[0]?.message ?? 'Dados inválidos') }
   }
 
   const supabase = createClient()
@@ -53,7 +52,7 @@ export async function criarChecklist(data: ChecklistFormData): Promise<ActionRes
     .returns<{ id: string }[]>()
     .single()
 
-  if (error || !novo) return { ok: false, error: error?.message ?? 'Falha ao criar checklist' }
+  if (error || !novo) return { ok: false, error: mensagemAmigavel(error?.message ?? 'Falha ao criar checklist') }
 
   if (status_geral !== 'aprovado') {
     await supabase.from('alertas').insert({

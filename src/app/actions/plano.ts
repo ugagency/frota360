@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getTransportadoraId } from '@/lib/tenant'
 import type { Plano } from '@/lib/plano'
+import { mensagemAmigavel } from '@/lib/errors'
 
 export type ActionResult = { ok: true } | { ok: false; error: string }
 
@@ -33,7 +34,7 @@ export async function atualizarPlano(novoPlano: Plano): Promise<ActionResult> {
     .update(payload as never)
     .eq('id', tid)
 
-  if (error) return { ok: false, error: error.message }
+  if (error) return { ok: false, error: mensagemAmigavel(error.message) }
 
   revalidatePath('/configuracoes')
   revalidatePath('/')

@@ -16,9 +16,11 @@ type Props = {
   userEmail: string
   plano:     Plano
   diasRestantes: number | null
+  mobileOpen:    boolean
+  onCloseMobile: () => void
 }
 
-export function Sidebar({ transportadoraNome, userNome, userEmail, plano, diasRestantes }: Props) {
+export function Sidebar({ transportadoraNome, userNome, userEmail, plano, diasRestantes, mobileOpen, onCloseMobile }: Props) {
   const { collapsed, toggle } = useSidebar()
   const pathname = usePathname()
 
@@ -30,9 +32,12 @@ export function Sidebar({ transportadoraNome, userNome, userEmail, plano, diasRe
   return (
     <aside
       className={cn(
-        'hidden md:flex fixed inset-y-0 left-0 z-30 flex-col bg-sidebar-bg border-r border-sidebar-border',
-        'transition-[width] duration-200 ease-out',
-        collapsed ? 'w-[64px]' : 'w-[240px]',
+        'fixed inset-y-0 left-0 z-50 flex flex-col',
+        'bg-sidebar-bg border-r border-sidebar-border',
+        'transition-[width,transform] duration-200 ease-out',
+        'w-[240px]',
+        collapsed && 'md:w-[64px]',
+        mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
       )}
     >
       {/* Header */}

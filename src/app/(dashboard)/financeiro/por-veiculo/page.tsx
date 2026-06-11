@@ -110,7 +110,7 @@ export default async function CustoPorVeiculoPage({ searchParams }: { searchPara
       {isPro && rows.filter((r) => r.custoPorKm > 0).length > 0 && (
         <div className="bg-app-card border rounded-xl p-5 space-y-4">
           <div>
-            <h2 className="font-display font-semibold text-ink mb-0.5">Custo/km vs. Benchmark de mercado</h2>
+            <h2 className="font-display font-semibold text-ink mb-0.5">Custo por quilômetro vs. Benchmark de mercado</h2>
             <BenchmarkDisclaimer />
           </div>
 

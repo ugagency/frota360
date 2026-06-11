@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2 } from 'lucide-react'
+import { Loader2, ChevronDown } from 'lucide-react'
 import { toast } from 'sonner'
 
 import {
@@ -22,6 +22,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { OCRUpload } from '@/components/ocr/ocr-upload'
 
 type Veiculo = Partial<VeiculoFormData> & { id?: string }
 
@@ -78,11 +79,54 @@ export function VeiculoForm({ veiculo, onSuccess, onCancel, plano = 'demo' }: Pr
   }
 
   const observacoes = form.watch('observacoes') ?? ''
+  const kmAtual = form.watch('km_atual')
+  const hasDocData = isEdit && Boolean(
+    veiculo?.renavam || veiculo?.chassi || veiculo?.cor || veiculo?.data_licenciamento
+  )
+
+  useEffect(() => {
+    if (!kmAtual || kmAtual <= 0) return
+    if (!form.getValues('km_proxima_revisao')) {
+      form.setValue('km_proxima_revisao', kmAtual + 50000)
+    }
+  }, [kmAtual, form])
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
         <div className="flex-1 overflow-y-auto px-1 space-y-8 pb-4">
+          {!isEdit && (
+            <div className="pb-5 border-b">
+              <p className="text-sm font-medium mb-1">Preencher automaticamente via CRLV</p>
+              <p className="text-xs text-ink-muted mb-3">
+                Tire uma foto do CRLV ou envie o arquivo — os campos serão preenchidos automaticamente.
+              </p>
+              <OCRUpload
+                tipo="crlv"
+                onExtraido={(dados) => {
+                  if (dados.placa)          form.setValue('placa',   String(dados.placa))
+                  if (dados.marca)          form.setValue('marca',   String(dados.marca))
+                  if (dados.modelo)         form.setValue('modelo',  String(dados.modelo))
+                  if (dados.ano_fabricacao) form.setValue('ano',     Number(dados.ano_fabricacao))
+                  if (dados.cor)            form.setValue('cor',     String(dados.cor))
+                  if (dados.renavam)        form.setValue('renavam', String(dados.renavam))
+                  if (dados.chassi)         form.setValue('chassi',  String(dados.chassi))
+                  if (dados.tipo) {
+                    const t = String(dados.tipo).toLowerCase()
+                    const mapa: Record<string, string> = {
+                      bitruck: 'bitruck', vanderleia: 'vanderleia',
+                      carreta: 'carreta', 'semi-reboque': 'carreta', reboque: 'carreta',
+                      'caminhão': 'truck', caminhao: 'truck', cavalo: 'truck',
+                    }
+                    const mapped = Object.entries(mapa).find(([k]) => t.includes(k))?.[1]
+                    if (mapped) form.setValue('tipo', mapped as typeof TIPO_VEICULO[number])
+                  }
+                  form.trigger(['placa', 'marca', 'modelo', 'ano'])
+                }}
+              />
+            </div>
+          )}
+
           {/* IDENTIFICAÇÃO */}
           <Secao titulo="Identificação">
             <FormField control={form.control} name="placa" render={({ field }) => (
@@ -161,66 +205,75 @@ export function VeiculoForm({ veiculo, onSuccess, onCancel, plano = 'demo' }: Pr
               )} />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <FormField control={form.control} name="ano" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ano</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number" min={1990} max={anoAtual + 1}
-                      value={field.value ?? ''}
-                      onChange={(e) => field.onChange(e.target.value === '' ? null : Number(e.target.value))}
-                      placeholder="2024"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
-              <FormField control={form.control} name="cor" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cor</FormLabel>
-                  <FormControl><Input {...field} value={field.value ?? ''} placeholder="Branco" /></FormControl>
-                </FormItem>
-              )} />
-            </div>
-          </Secao>
-
-          <Separator />
-
-          {/* DOCUMENTAÇÃO */}
-          <Secao titulo="Documentação">
-            <div className="grid grid-cols-2 gap-3">
-              <FormField control={form.control} name="renavam" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>RENAVAM</FormLabel>
-                  <FormControl><Input {...field} value={field.value ?? ''} className="font-mono" placeholder="00000000000" /></FormControl>
-                </FormItem>
-              )} />
-              <FormField control={form.control} name="chassi" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Chassi</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      value={(field.value ?? '').toUpperCase()}
-                      onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                      className="font-mono uppercase"
-                      placeholder="9BWHE21JX24..."
-                    />
-                  </FormControl>
-                </FormItem>
-              )} />
-            </div>
-
-            <FormField control={form.control} name="data_licenciamento" render={({ field }) => (
+            <FormField control={form.control} name="ano" render={({ field }) => (
               <FormItem>
-                <FormLabel>Data de licenciamento</FormLabel>
+                <FormLabel>Ano</FormLabel>
                 <FormControl>
-                  <Input type="date" value={field.value ?? ''} onChange={field.onChange} className="font-mono" />
+                  <Input
+                    type="number" min={1990} max={anoAtual + 1}
+                    value={field.value ?? ''}
+                    onChange={(e) => field.onChange(e.target.value === '' ? null : Number(e.target.value))}
+                    placeholder="2024"
+                  />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )} />
           </Secao>
+
+          <details open={hasDocData} className="mt-1 group">
+            <summary className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer hover:text-ink list-none py-1.5">
+              <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+              Dados completos do documento (opcional)
+            </summary>
+            <div className="pt-3 space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <FormField control={form.control} name="renavam" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      RENAVAM
+                      <span className="text-ink-muted font-normal ml-1 text-xs">(impresso no CRLV)</span>
+                    </FormLabel>
+                    <FormControl><Input {...field} value={field.value ?? ''} className="font-mono" placeholder="00000000000" /></FormControl>
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="chassi" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Nº do Chassi
+                      <span className="text-ink-muted font-normal ml-1 text-xs">(no CRLV — 17 car.)</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        value={(field.value ?? '').toUpperCase()}
+                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                        className="font-mono uppercase"
+                        placeholder="9BWHE21JX24..."
+                      />
+                    </FormControl>
+                  </FormItem>
+                )} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <FormField control={form.control} name="cor" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cor</FormLabel>
+                    <FormControl><Input {...field} value={field.value ?? ''} placeholder="Branco" /></FormControl>
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="data_licenciamento" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Data de licenciamento</FormLabel>
+                    <FormControl>
+                      <Input type="date" value={field.value ?? ''} onChange={field.onChange} className="font-mono" />
+                    </FormControl>
+                  </FormItem>
+                )} />
+              </div>
+            </div>
+          </details>
 
           <Separator />
 
@@ -257,6 +310,11 @@ export function VeiculoForm({ veiculo, onSuccess, onCancel, plano = 'demo' }: Pr
                       }}
                     />
                   </FormControl>
+                  <p className="text-xs text-ink-muted mt-1">
+                    {kmAtual && kmAtual > 0
+                      ? `Sugestão: ${(kmAtual + 50000).toLocaleString('pt-BR')} km (KM atual + 50.000)`
+                      : 'Preencha o KM atual primeiro para calcular automaticamente.'}
+                  </p>
                 </FormItem>
               )} />
               <FormField control={form.control} name="data_proxima_revisao" render={({ field }) => (

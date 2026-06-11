@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getTransportadoraId } from '@/lib/tenant'
+import { mensagemAmigavel } from '@/lib/errors'
 import {
   manutencaoSchema, manutencaoUpdateSchema, concluirManutencaoSchema,
   type ManutencaoFormData, type ManutencaoUpdateData, type ConcluirManutencaoData,
@@ -47,7 +48,7 @@ export async function criarManutencao(data: ManutencaoFormData): Promise<ActionR
     .returns<{ id: string }[]>()
     .single()
 
-  if (error || !nova) return { ok: false, error: error?.message ?? 'Falha ao criar manutenção' }
+  if (error || !nova) return { ok: false, error: mensagemAmigavel(error?.message ?? 'Falha ao criar manutenção') }
 
   // Veículo entra em manutenção
   await supabase.from('veiculos').update({ status: 'em_manutencao' } as never).eq('id', parsed.data.veiculo_id)
@@ -83,7 +84,7 @@ export async function atualizarManutencao(id: string, data: ManutencaoUpdateData
   }
 
   const { error } = await supabase.from('manutencoes').update(update as never).eq('id', id)
-  if (error) return { ok: false, error: error.message }
+  if (error) return { ok: false, error: mensagemAmigavel(error.message) }
 
   // Atualiza lançamento vinculado se valor mudou
   if (update.valor_total != null) {
@@ -148,7 +149,7 @@ export async function concluirManutencao(id: string, data: ConcluirManutencaoDat
 export async function anexarLaudo(id: string, laudoUrl: string): Promise<ActionResult> {
   const supabase = createClient()
   const { error } = await supabase.from('manutencoes').update({ laudo_url: laudoUrl } as never).eq('id', id)
-  if (error) return { ok: false, error: error.message }
+  if (error) return { ok: false, error: mensagemAmigavel(error.message) }
   revalidateAll(id)
   return { ok: true }
 }

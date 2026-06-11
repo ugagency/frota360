@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getTransportadoraId } from '@/lib/tenant'
 import { gerarAlertas } from '@/lib/alertas'
+import { mensagemAmigavel } from '@/lib/errors'
 import {
   viagemCreateSchema, encerrarViagemSchemaBase, cancelarViagemSchema,
   type ViagemCreateData, type EncerrarViagemData, type CancelarViagemData,
@@ -90,7 +91,7 @@ export async function criarViagem(data: ViagemCreateData): Promise<ActionResult<
 
   if (insertErr || !nova) {
     if (insertErr?.code === '23505') return { ok: false, error: 'Conflito de número de viagem. Tente novamente.' }
-    return { ok: false, error: insertErr?.message ?? 'Falha ao criar viagem' }
+    return { ok: false, error: mensagemAmigavel(insertErr?.message ?? 'Falha ao criar viagem') }
   }
 
   // 5. Atualiza veículo → em_viagem (+ km_atual se km_saida for maior)

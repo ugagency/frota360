@@ -8,6 +8,7 @@ import { PeriodoPicker } from '@/components/financeiro/periodo-picker'
 import { ExportCsvButton, PrintButton } from '@/components/relatorios/export-button'
 import { AreaPorCategoria } from '@/components/relatorios/charts'
 import { formatCurrency, formatKm } from '@/lib/utils'
+import { formatarPeriodo } from '@/lib/format'
 import { CATEGORIA_LABEL } from '@/lib/validations/financeiro'
 
 export const dynamic = 'force-dynamic'
@@ -119,7 +120,7 @@ export default async function RelatorioCustosPage({ searchParams }: { searchPara
       <header className="flex items-end justify-between gap-4 flex-wrap">
         <div>
           <h1 className="font-display text-3xl font-semibold text-ink leading-none">Relatório de Custos</h1>
-          <p className="mt-1.5 text-sm text-ink-muted font-mono">{de} → {ate}</p>
+          <p className="mt-1.5 text-sm text-ink-muted font-mono">{formatarPeriodo(de, ate)}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 print:hidden">
           <PeriodoPicker />
@@ -138,7 +139,7 @@ export default async function RelatorioCustosPage({ searchParams }: { searchPara
 
       {/* DRE simplificado */}
       <Card className="bg-app-card p-6">
-        <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-ink-muted mb-4">DRE Simplificado</h3>
+        <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-ink-muted mb-4">Resultado financeiro do período</h3>
         <dl className="space-y-2">
           <DreRow label="Receitas totais" value={receitas} tone="accent" />
           <DreRow label="(-) Despesas totais" value={despesas} tone="danger" />
@@ -201,12 +202,12 @@ export default async function RelatorioCustosPage({ searchParams }: { searchPara
 
       {/* Custo / KM */}
       <Card className="bg-app-card p-6">
-        <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-ink-muted mb-3">Custo / KM da frota</h3>
+        <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-ink-muted mb-3">Custo por quilômetro da frota</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Stat label="KM rodados" value={formatKm(kmTotal)} />
           <Stat label="Despesas totais" value={formatCurrency(despesas)} />
           <Stat
-            label="Custo / KM"
+            label="Custo por quilômetro"
             value={kmTotal > 0 ? formatCurrency(custoPorKm) : '—'}
             highlight={kmTotal > 0 ? (custoPorKm <= CUSTO_KM_SETOR ? 'accent' : 'danger') : 'neutral'}
           />

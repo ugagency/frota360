@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
 import { MobileNav } from '@/components/layout/mobile-nav'
@@ -27,6 +28,15 @@ export function DashboardShell({
 }: Props) {
   const { collapsed } = useSidebar()
   const pathname = usePathname()
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  useEffect(() => { setMobileOpen(false) }, [pathname])
+
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileOpen(false) }
+    document.addEventListener('keydown', h)
+    return () => document.removeEventListener('keydown', h)
+  }, [])
 
   const diasDemo = plano === 'demo'
     ? diasRestantesDemo({ plano, plano_status: planoStatus, plano_inicio: null, plano_validade: planoValidade })
@@ -41,12 +51,22 @@ export function DashboardShell({
 
   return (
     <div className="min-h-screen bg-app">
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-40 md:hidden"
+          onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       <Sidebar
         transportadoraNome={transportadoraNome}
         userNome={userNome}
         userEmail={userEmail}
         plano={plano}
         diasRestantes={diasDemo}
+        mobileOpen={mobileOpen}
+        onCloseMobile={() => setMobileOpen(false)}
       />
       <div className={cn(
         'flex flex-col min-h-screen transition-[margin] duration-200',
@@ -58,6 +78,7 @@ export function DashboardShell({
           plano={plano}
           planoStatus={planoStatus}
           alertasCriticos={alertasCriticos}
+          onOpenMobile={() => setMobileOpen(true)}
         />
         <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6">{children}</main>
       </div>

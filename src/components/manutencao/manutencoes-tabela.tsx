@@ -29,7 +29,7 @@ export function ManutencoesTabela({ manutencoes }: { manutencoes: ManutencaoList
   return (
     <div className="rounded-md border bg-app-card overflow-hidden">
       <TooltipProvider>
-        <Table>
+        <Table className="min-w-[640px]">
           <TableHeader>
             <TableRow className="bg-app-subtle/40 hover:bg-app-subtle/40">
               {['Veículo', 'Tipo', 'Descrição', 'Oficina', 'Entrada', 'Saída', 'Custo', 'Status', 'Ações'].map((h) => (
@@ -73,7 +73,7 @@ export function ManutencoesTabela({ manutencoes }: { manutencoes: ManutencaoList
                   <TableCell className="text-right font-mono text-sm">{formatCurrency(Number(m.valor_total))}</TableCell>
                   <TableCell><StatusBadge status={m.status} /></TableCell>
                   <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                    <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+                    <Button asChild variant="ghost" size="icon" className="h-10 w-10">
                       <Link href={`/manutencao/${m.id}`}><Eye size={15} /></Link>
                     </Button>
                   </TableCell>

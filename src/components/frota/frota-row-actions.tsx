@@ -37,7 +37,7 @@ export function FrotaRowActions({ veiculo }: Props) {
 
   return (
     <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-      <Button asChild variant="ghost" size="icon" className="h-8 w-8" title="Ver detalhes">
+      <Button asChild variant="ghost" size="icon" className="h-10 w-10" title="Ver detalhes">
         <Link href={`/frota/${veiculo.id}`}><Eye size={15} /></Link>
       </Button>
 
@@ -45,13 +45,13 @@ export function FrotaRowActions({ veiculo }: Props) {
         mode="edit"
         veiculo={veiculo}
         trigger={
-          <Button variant="ghost" size="icon" className="h-8 w-8" title="Editar"><Pencil size={15} /></Button>
+          <Button variant="ghost" size="icon" className="h-10 w-10" title="Editar"><Pencil size={15} /></Button>
         }
       />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8" title="Mais"><MoreVertical size={15} /></Button>
+          <Button variant="ghost" size="icon" className="h-10 w-10" title="Mais"><MoreVertical size={15} /></Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44">
           <AtualizarKmModal

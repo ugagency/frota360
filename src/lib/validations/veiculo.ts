@@ -76,11 +76,11 @@ export const CATEGORIA_LABELS: Record<typeof CATEGORIA_VEICULO[number], string> 
 }
 
 export const TIPO_LABELS: Record<typeof TIPO_VEICULO[number], string> = {
-  truck: 'Truck',
-  bitruck: 'Bitruck',
-  carreta: 'Carreta',
-  vanderleia: 'Vanderleia',
-  outros: 'Outros',
+  truck:      '🚛 Truck',
+  bitruck:    '🚚 Bitruck',
+  carreta:    '🚛 Carreta',
+  vanderleia: '🚌 Vanderleia',
+  outros:     '🔧 Outros',
 }
 
 export const PROPRIETARIO_LABELS: Record<typeof PROPRIETARIO[number], string> = {

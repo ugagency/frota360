@@ -22,9 +22,11 @@ type Transp = {
   created_at: string
 }
 
-type Vinculo = {
+type Membro = {
   user_id: string
   role: 'admin' | 'gestor' | 'operador'
+  email: string
+  nome: string
   created_at: string
 }
 
@@ -47,21 +49,19 @@ export default async function ConfiguracoesPage() {
   const supabase = createClient()
   const tid = await getTransportadoraId(supabase)
 
-  const [transpRes, vinculosRes, currentUserRes] = await Promise.all([
+  const [transpRes, membrosRes, currentUserRes] = await Promise.all([
     supabase.from('transportadoras')
       .select('id, nome, cnpj, telefone, cidade, estado, plano, plano_status, trial_ends_at, created_at')
       .eq('id', tid)
       .returns<Transp[]>()
       .single(),
-    supabase.from('usuarios_transportadoras')
-      .select('user_id, role, created_at')
-      .eq('transportadora_id', tid)
-      .returns<Vinculo[]>(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any).rpc('get_membros_transportadora', { p_transportadora_id: tid }) as Promise<{ data: Membro[] | null }>,
     supabase.auth.getUser(),
   ])
 
   const t = transpRes.data!
-  const vinculos = vinculosRes.data ?? []
+  const membros = (membrosRes.data ?? []) as Membro[]
   const currentUserId = currentUserRes.data.user?.id
 
   return (
@@ -106,25 +106,25 @@ export default async function ConfiguracoesPage() {
         <div className="flex items-center gap-2 mb-4">
           <Users size={16} className="text-ink-muted" />
           <h2 className="font-display text-xl font-semibold text-ink">Equipe</h2>
-          <span className="ml-1 text-xs font-mono text-ink-muted">{vinculos.length}</span>
+          <span className="ml-1 text-xs font-mono text-ink-muted">{membros.length}</span>
         </div>
 
-        {vinculos.length === 0 ? (
+        {membros.length === 0 ? (
           <p className="text-sm text-ink-muted">Nenhum usuário vinculado.</p>
         ) : (
           <ul className="divide-y">
-            {vinculos.map((v) => (
-              <li key={v.user_id} className="flex items-center gap-3 py-3">
-                <AvatarIniciais nome={v.user_id.slice(0, 2)} size="md" />
+            {membros.map((m) => (
+              <li key={m.user_id} className="flex items-center gap-3 py-3">
+                <AvatarIniciais nome={m.nome} size="md" />
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm text-ink font-mono">
-                    {v.user_id.slice(0, 8)}…
-                    {v.user_id === currentUserId && <span className="ml-2 text-[10px] font-mono uppercase text-brand">VOCÊ</span>}
+                  <div className="text-sm text-ink font-medium">
+                    {m.nome}
+                    {m.user_id === currentUserId && <span className="ml-2 text-[10px] font-mono uppercase text-brand">VOCÊ</span>}
                   </div>
-                  <div className="text-xs text-ink-muted">Vinculado em {formatDate(v.created_at)}</div>
+                  <div className="text-xs text-ink-muted">{m.email}</div>
                 </div>
                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-medium uppercase bg-stone-100 text-stone-700 border border-stone-200">
-                  {ROLE_LABEL[v.role]}
+                  {ROLE_LABEL[m.role]}
                 </span>
               </li>
             ))}

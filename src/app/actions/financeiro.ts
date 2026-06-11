@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getTransportadoraId } from '@/lib/tenant'
+import { mensagemAmigavel } from '@/lib/errors'
 import {
   lancamentoSchema, lancamentoUpdateSchema,
   type LancamentoFormData, type LancamentoUpdateData,
@@ -34,7 +35,7 @@ export async function criarLancamento(data: LancamentoFormData): Promise<ActionR
     .returns<{ id: string }[]>()
     .single()
 
-  if (error || !novo) return { ok: false, error: error?.message ?? 'Falha ao criar lançamento' }
+  if (error || !novo) return { ok: false, error: mensagemAmigavel(error?.message ?? 'Falha ao criar lançamento') }
 
   revalidateAll(parsed.data.veiculo_id)
   return { ok: true, data: { id: novo.id } }
@@ -46,7 +47,7 @@ export async function atualizarLancamento(id: string, data: LancamentoUpdateData
 
   const supabase = createClient()
   const { error } = await supabase.from('lancamentos_financeiros').update(parsed.data as never).eq('id', id)
-  if (error) return { ok: false, error: error.message }
+  if (error) return { ok: false, error: mensagemAmigavel(error.message) }
   revalidateAll(parsed.data.veiculo_id)
   return { ok: true }
 }
@@ -54,7 +55,7 @@ export async function atualizarLancamento(id: string, data: LancamentoUpdateData
 export async function deletarLancamento(id: string): Promise<ActionResult> {
   const supabase = createClient()
   const { error } = await supabase.from('lancamentos_financeiros').delete().eq('id', id)
-  if (error) return { ok: false, error: error.message }
+  if (error) return { ok: false, error: mensagemAmigavel(error.message) }
   revalidateAll()
   return { ok: true }
 }

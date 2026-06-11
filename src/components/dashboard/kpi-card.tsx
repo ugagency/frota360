@@ -46,7 +46,7 @@ export function KpiCard({ titulo, valor, subtitulo, icone: Icon, variante = 'neu
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="text-[13px] text-ink-secondary leading-tight">{titulo}</div>
-          <div className="mt-2 font-display text-[32px] font-bold tabular-nums leading-none text-ink">
+          <div className="mt-2 font-display text-2xl sm:text-[32px] font-bold tabular-nums leading-none text-ink truncate">
             {valor}
           </div>
           {subtitulo && (

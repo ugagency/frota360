@@ -104,7 +104,7 @@ export default async function ManutencaoDetailPage({ params }: { params: { id: s
           <UploadLaudo manutencaoId={m.id} transportadoraId={m.transportadora_id} laudoUrl={m.laudo_url} />
           {podeEditar && <ManutencaoFormSheet mode="edit" veiculos={veiculosRes.data ?? []} manutencao={formData} />}
           {m.status === 'em_andamento' && (
-            <ConcluirManutencaoModal manutencaoId={m.id} valorAtual={Number(m.valor_total)} />
+            <ConcluirManutencaoModal manutencaoId={m.id} valorAtual={Number(m.valor_total)} kmNaManutencao={m.km_na_manutencao} />
           )}
         </div>
       </header>

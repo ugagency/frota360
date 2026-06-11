@@ -32,7 +32,7 @@ export function FrotaTabela({ veiculos }: { veiculos: VeiculoLista[] }) {
 
   return (
     <div className="rounded-md border bg-app-card overflow-hidden">
-      <Table>
+      <Table className="min-w-[640px]">
         <TableHeader>
           <TableRow className="bg-app-subtle/40 hover:bg-app-subtle/40">
             <TableHead className="font-mono text-[11px] uppercase tracking-wider text-ink-muted">Veículo</TableHead>

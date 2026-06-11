@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getTransportadoraId } from '@/lib/tenant'
 import { gerarAlertas } from '@/lib/alertas'
+import { mensagemAmigavel } from '@/lib/errors'
 import {
   motoristaSchema, motoristaUpdateSchema,
   type MotoristaFormData, type MotoristaUpdateData,
@@ -37,7 +38,7 @@ export async function criarMotorista(data: MotoristaFormData): Promise<ActionRes
 
   if (error || !novo) {
     if (error?.code === '23505') return { ok: false, error: 'Já existe um motorista com esse CPF.' }
-    return { ok: false, error: error?.message ?? 'Falha ao criar motorista' }
+    return { ok: false, error: mensagemAmigavel(error?.message ?? 'Falha ao criar motorista') }
   }
 
   // Recheca alertas (CNH/MOPP próximos do vencimento já viram pendentes)
@@ -54,7 +55,7 @@ export async function atualizarMotorista(id: string, data: MotoristaUpdateData):
 
   const supabase = createClient()
   const { error } = await supabase.from('motoristas').update(parsed.data as never).eq('id', id)
-  if (error) return { ok: false, error: error.message }
+  if (error) return { ok: false, error: mensagemAmigavel(error.message) }
 
   // Reavalia alertas (datas de CNH/MOPP podem ter mudado)
   try {
@@ -81,7 +82,7 @@ export async function inativarMotorista(id: string): Promise<ActionResult> {
   }
 
   const { error } = await supabase.from('motoristas').update({ status: 'inativo' } as never).eq('id', id)
-  if (error) return { ok: false, error: error.message }
+  if (error) return { ok: false, error: mensagemAmigavel(error.message) }
 
   revalidateAll(id)
   return { ok: true }
@@ -90,7 +91,29 @@ export async function inativarMotorista(id: string): Promise<ActionResult> {
 export async function reativarMotorista(id: string): Promise<ActionResult> {
   const supabase = createClient()
   const { error } = await supabase.from('motoristas').update({ status: 'ativo' } as never).eq('id', id)
-  if (error) return { ok: false, error: error.message }
+  if (error) return { ok: false, error: mensagemAmigavel(error.message) }
   revalidateAll(id)
+  return { ok: true }
+}
+
+// ---------------------------------------------------------------------
+export async function atualizarValidadeCNH(
+  motoristaId: string,
+  novaValidade: string,
+  alertaId: string,
+): Promise<ActionResult> {
+  const supabase = createClient()
+
+  const { error: errMot } = await supabase
+    .from('motoristas')
+    .update({ cnh_validade: novaValidade } as never)
+    .eq('id', motoristaId)
+  if (errMot) return { ok: false, error: mensagemAmigavel(errMot.message) }
+
+  await supabase.from('alertas').update({ status: 'resolvido' } as never).eq('id', alertaId)
+
+  revalidatePath('/')
+  revalidatePath('/alertas')
+  revalidateAll(motoristaId)
   return { ok: true }
 }

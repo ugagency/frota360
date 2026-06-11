@@ -16,12 +16,14 @@ export default async function DashboardPage() {
   const supabase = createClient()
 
   // Saudação usa nome da transportadora — busca rápida em paralelo com a geração de alertas
-  const [transp] = await Promise.all([
+  const [transp, veicCount, motCount] = await Promise.all([
     supabase
       .from('transportadoras')
       .select('id, nome, config')
       .returns<{ id: string; nome: string; config: Record<string, unknown> | null }[]>()
       .single(),
+    supabase.from('veiculos').select('id', { count: 'exact', head: true }),
+    supabase.from('motoristas').select('id', { count: 'exact', head: true }),
   ])
 
   // Geração automática (throttle 1h) — fire-and-forget mas aguardamos para o primeiro render
@@ -31,6 +33,7 @@ export default async function DashboardPage() {
 
   const nomeTransp = transp.data?.nome ?? 'sua operação'
   const hoje = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })
+  const primeiroAcesso = (veicCount.count ?? 0) === 0 && (motCount.count ?? 0) === 0
 
   return (
     <div className="space-y-6">
@@ -42,6 +45,40 @@ export default async function DashboardPage() {
           Aqui está o resumo da sua operação de hoje — <span className="capitalize">{hoje}</span>.
         </p>
       </header>
+
+      {primeiroAcesso && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
+          <h2 className="font-display font-semibold text-amber-900 text-lg mb-1">
+            Bem-vindo ao Frota 360!
+          </h2>
+          <p className="text-amber-700 text-sm mb-4">
+            Comece cadastrando sua frota. Leva menos de 5 minutos.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <a href="/frota">
+              <button className="w-full sm:w-auto px-4 py-2 text-sm font-medium
+                                 bg-brand text-white rounded-lg hover:bg-brand-dark
+                                 transition-colors">
+                1 · Cadastrar caminhões →
+              </button>
+            </a>
+            <a href="/motoristas">
+              <button className="w-full sm:w-auto px-4 py-2 text-sm font-medium
+                                 bg-white border border-amber-300 text-amber-800
+                                 rounded-lg hover:bg-amber-50 transition-colors">
+                2 · Cadastrar motoristas
+              </button>
+            </a>
+            <a href="/importar">
+              <button className="w-full sm:w-auto px-4 py-2 text-sm font-medium
+                                 bg-white border border-amber-300 text-amber-800
+                                 rounded-lg hover:bg-amber-50 transition-colors">
+                3 · Tenho uma planilha →
+              </button>
+            </a>
+          </div>
+        </div>
+      )}
 
       <Suspense fallback={<KpisGridSkeleton />}>
         <KpisGrid />
@@ -116,7 +153,7 @@ async function KpisGrid() {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
       <KpiCard titulo="Veículos ativos" valor={veiculosAtivos}        icone={Truck}        variante="accent" subtitulo="Frota disponível" />
       <KpiCard titulo="Em viagem agora" valor={veiculosEmViagem}      icone={Route}        variante="brand"  subtitulo="Operações em curso" />
       <KpiCard titulo="Em manutenção"   valor={veiculosEmManutencao}  icone={Wrench}       variante="info"   subtitulo="Parados na oficina" />
@@ -129,7 +166,7 @@ async function KpisGrid() {
 
 function KpisGridSkeleton() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
       {Array.from({ length: 6 }).map((_, i) => <KpiCardSkeleton key={i} />)}
     </div>
   )

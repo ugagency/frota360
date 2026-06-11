@@ -34,7 +34,7 @@ const RELATORIOS = [
     href: '/relatorios/custos',
     icon: DollarSign,
     titulo: 'Custos',
-    descricao: 'DRE simplificado, breakdown por categoria, custo/KM da frota.',
+    descricao: 'Resultado financeiro do período, breakdown por categoria, custo por quilômetro da frota.',
     color: 'bg-red-600 text-white',
   },
 ] as const
@@ -46,7 +46,7 @@ export default async function RelatoriosPage() {
     return (
       <ModuloBloqueado
         nomeModulo="Relatórios"
-        descricao="Relatórios de frota, viagens, motoristas e custos com exportação CSV. Inclui DRE simplificado e custo/km."
+        descricao="Relatórios de frota, viagens, motoristas e custos com exportação CSV. Inclui resultado financeiro do período e custo por quilômetro."
       />
     )
   }

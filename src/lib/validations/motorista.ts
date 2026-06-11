@@ -36,6 +36,6 @@ export const motoristaUpdateSchema = motoristaSchema.partial()
 export type MotoristaUpdateData = z.infer<typeof motoristaUpdateSchema>
 
 export const TIPO_LABELS: Record<typeof TIPO_MOTORISTA[number], string> = {
-  proprio: 'Próprio',
-  agregado: 'Agregado',
+  proprio:  'Funcionário da empresa',
+  agregado: 'Autônomo / Terceirizado',
 }

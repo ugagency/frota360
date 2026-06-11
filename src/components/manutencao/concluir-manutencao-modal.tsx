@@ -17,13 +17,15 @@ import { parseKmInput, formatarKmInput } from '@/lib/format'
 type Props = {
   manutencaoId: string
   valorAtual: number
+  kmNaManutencao?: number | null
   trigger?: React.ReactNode
 }
 
-export function ConcluirManutencaoModal({ manutencaoId, valorAtual, trigger }: Props) {
+export function ConcluirManutencaoModal({ manutencaoId, valorAtual, kmNaManutencao, trigger }: Props) {
+  const kmSugerido = kmNaManutencao ? kmNaManutencao + 50000 : null
   const [open, setOpen] = useState(false)
   const [dataSaida, setDataSaida] = useState(new Date().toISOString().slice(0, 10))
-  const [kmProxima, setKmProxima] = useState('')
+  const [kmProxima, setKmProxima] = useState(kmSugerido ? formatarKmInput(kmSugerido) : '')
   const [dataProxima, setDataProxima] = useState('')
   const [valorFinal, setValorFinal] = useState(String(valorAtual))
   const [pending, startT] = useTransition()
@@ -76,6 +78,11 @@ export function ConcluirManutencaoModal({ manutencaoId, valorAtual, trigger }: P
                 value={kmProxima}
                 onChange={(e) => setKmProxima(formatarKmInput(e.target.value))}
               />
+              {kmNaManutencao && (
+                <p className="text-xs text-ink-muted">
+                  Sugestão: {(kmNaManutencao + 50000).toLocaleString('pt-BR')} km (KM entrada + 50.000)
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Data próx. revisão</Label>

@@ -47,7 +47,7 @@ export function LancamentosTabela({
 
   return (
     <div className="rounded-md border bg-app-card overflow-hidden">
-      <Table>
+      <Table className="min-w-[640px]">
         <TableHeader>
           <TableRow className="bg-app-subtle/40 hover:bg-app-subtle/40">
             {['Data', 'Tipo', 'Categoria', 'Descrição', 'Veículo', 'Valor', '', 'Ações'].map((h, i) => (
@@ -125,7 +125,7 @@ function Row({ lancamento: l, veiculos, viagens }: {
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-ink-muted hover:text-destructive" disabled={pending}>
+              <Button variant="ghost" size="icon" className="h-10 w-10 text-ink-muted hover:text-destructive" disabled={pending}>
                 <Trash2 size={14} />
               </Button>
             </AlertDialogTrigger>

@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { Bell } from 'lucide-react'
+import { Bell, Menu } from 'lucide-react'
 import { UserNav } from '@/components/layout/user-nav'
 import { NAV_ITEMS } from '@/components/layout/nav-items'
 import { cn } from '@/lib/utils'
@@ -13,6 +13,7 @@ type Props = {
   plano:       Plano
   planoStatus: string
   alertasCriticos?: number
+  onOpenMobile?: () => void
 }
 
 const PAGE_TITLES: Record<string, string> = {
@@ -28,15 +29,24 @@ const PAGE_TITLES: Record<string, string> = {
   '/assistente':    'Assistente IA',
   '/configuracoes': 'Configurações',
   '/upgrade':       'Planos',
+  '/importar':      'Importar dados',
 }
 
-export function Header({ userNome, userEmail, plano, planoStatus, alertasCriticos = 0 }: Props) {
+export function Header({ userNome, userEmail, plano, planoStatus, alertasCriticos = 0, onOpenMobile }: Props) {
   const pathname = usePathname()
   const title = resolveTitle(pathname)
 
   return (
     <header className="sticky top-0 z-20 h-14 flex items-center justify-between px-4 md:px-6 bg-app-card border-b">
       <div className="flex items-center gap-3 min-w-0">
+        <button
+          type="button"
+          onClick={onOpenMobile}
+          className="md:hidden p-2 rounded hover:bg-app-subtle text-ink-secondary"
+          aria-label="Abrir menu"
+        >
+          <Menu size={20} />
+        </button>
         <h1 className="font-display text-[20px] leading-none font-semibold text-ink truncate">
           {title}
         </h1>

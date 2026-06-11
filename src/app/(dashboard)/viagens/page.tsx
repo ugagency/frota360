@@ -30,7 +30,7 @@ export default async function ViagensPage({ searchParams }: { searchParams: Sear
   // Query da lista
   let query = supabase
     .from('viagens')
-    .select('id, numero, origem, destino, data_saida, data_chegada, valor_frete, status, veiculos(placa, modelo), motoristas(nome)', { count: 'exact' })
+    .select('id, numero, origem, destino, data_saida, data_chegada, valor_frete, km_saida, status, veiculos(placa, modelo), motoristas(nome)', { count: 'exact' })
     .order('data_saida', { ascending: false, nullsFirst: false })
 
   if (searchParams.status && searchParams.status !== 'todos') query = query.eq('status', searchParams.status)

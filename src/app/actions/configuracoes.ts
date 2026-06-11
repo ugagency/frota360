@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getTransportadoraId } from '@/lib/tenant'
+import { mensagemAmigavel } from '@/lib/errors'
 import {
   transportadoraUpdateSchema, type TransportadoraUpdateData,
 } from '@/lib/validations/transportadora'
@@ -29,7 +30,7 @@ export async function atualizarTransportadora(data: TransportadoraUpdateData): P
     } as never)
     .eq('id', tid)
 
-  if (error) return { ok: false, error: error.message }
+  if (error) return { ok: false, error: mensagemAmigavel(error.message) }
 
   revalidatePath('/')
   revalidatePath('/configuracoes')

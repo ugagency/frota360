@@ -72,3 +72,17 @@ export function formatarKmInput(input: string | number): string {
 export function parseKmInput(input: string): number {
   return Number(input.replace(/\D/g, '')) || 0
 }
+
+// ---------- Período ----------
+export function formatarPeriodo(de: string, ate: string): string {
+  const d = new Date(de + 'T12:00:00')
+  const a = new Date(ate + 'T12:00:00')
+  const MESES = ['janeiro','fevereiro','março','abril','maio','junho',
+                 'julho','agosto','setembro','outubro','novembro','dezembro']
+  if (de === ate) return `${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`
+  if (d.getFullYear() === a.getFullYear() && d.getMonth() === a.getMonth())
+    return `${MESES[d.getMonth()]} de ${d.getFullYear()}`
+  if (d.getFullYear() === a.getFullYear())
+    return `${MESES[d.getMonth()]} a ${MESES[a.getMonth()]} de ${d.getFullYear()}`
+  return `${MESES[d.getMonth()]}/${d.getFullYear()} a ${MESES[a.getMonth()]}/${a.getFullYear()}`
+}

@@ -8,6 +8,7 @@ import {
   type VeiculoFormData, type VeiculoUpdateData,
 } from '@/lib/validations/veiculo'
 import { limites, type Plano } from '@/lib/plano'
+import { mensagemAmigavel } from '@/lib/errors'
 
 export type ActionResult<T = void> = { ok: true; data?: T } | { ok: false; error: string }
 
@@ -53,7 +54,7 @@ export async function criarVeiculo(data: VeiculoFormData): Promise<ActionResult<
 
   if (error || !novo) {
     if (error?.code === '23505') return { ok: false, error: 'Já existe um veículo com essa placa.' }
-    return { ok: false, error: error?.message ?? 'Falha ao criar veículo' }
+    return { ok: false, error: mensagemAmigavel(error?.message ?? 'Falha ao criar veículo') }
   }
 
   revalidateAll()
@@ -71,7 +72,7 @@ export async function atualizarVeiculo(id: string, data: VeiculoUpdateData): Pro
     .update(parsed.data as never)
     .eq('id', id)
 
-  if (error) return { ok: false, error: error.message }
+  if (error) return { ok: false, error: mensagemAmigavel(error.message) }
   revalidateAll()
   revalidatePath(`/frota/${id}`)
   return { ok: true }
@@ -97,7 +98,7 @@ export async function atualizarKm(id: string, novaKm: number): Promise<ActionRes
   }
 
   const { error } = await supabase.from('veiculos').update({ km_atual: novaKm } as never).eq('id', id)
-  if (error) return { ok: false, error: error.message }
+  if (error) return { ok: false, error: mensagemAmigavel(error.message) }
 
   // Disparo de alerta crítico se ultrapassou KM de revisão
   if (atualRaw.km_proxima_revisao != null && novaKm >= Number(atualRaw.km_proxima_revisao)) {
@@ -135,7 +136,7 @@ export async function inativarVeiculo(id: string): Promise<ActionResult> {
   }
 
   const { error } = await supabase.from('veiculos').update({ status: 'inativo' } as never).eq('id', id)
-  if (error) return { ok: false, error: error.message }
+  if (error) return { ok: false, error: mensagemAmigavel(error.message) }
 
   revalidateAll()
   revalidatePath(`/frota/${id}`)
@@ -146,7 +147,7 @@ export async function inativarVeiculo(id: string): Promise<ActionResult> {
 export async function reativarVeiculo(id: string): Promise<ActionResult> {
   const supabase = createClient()
   const { error } = await supabase.from('veiculos').update({ status: 'ativo' } as never).eq('id', id)
-  if (error) return { ok: false, error: error.message }
+  if (error) return { ok: false, error: mensagemAmigavel(error.message) }
   revalidateAll()
   revalidatePath(`/frota/${id}`)
   return { ok: true }

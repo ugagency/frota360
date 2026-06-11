@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PriorityBadge, type Priority } from '@/components/ui/priority-badge'
 import { AlertasFiltros } from '@/components/alertas/alertas-filtros'
+import { CnhRenovacaoInline } from '@/components/alertas/cnh-renovacao-inline'
 import { resolverAlerta, marcarAlertaVisualizado } from '@/app/actions/alertas'
 import { formatDate, cn } from '@/lib/utils'
 
@@ -95,6 +96,9 @@ export default async function AlertasPage({ searchParams }: { searchParams: Sear
                       )}>{STATUS_LABEL[a.status]}</span>
                     </div>
                     {a.descricao && <div className="mt-1 text-xs text-ink-secondary leading-snug">{a.descricao}</div>}
+                    {a.tipo === 'cnh_vencimento' && a.status !== 'resolvido' && (
+                      <CnhRenovacaoInline motoristaId={a.referencia_id} alertaId={a.id} />
+                    )}
                     <div className="mt-2 flex items-center gap-3">
                       <span className="font-mono text-[11px] text-ink-muted">{formatDate(a.data_alerta)}</span>
                       <Link

@@ -166,6 +166,11 @@ export function ManutencaoForm({ veiculos, manutencao, onSuccess, onCancel }: Pr
                       }}
                     />
                   </FormControl>
+                  {veiculoSel && (
+                    <p className="text-xs text-ink-muted mt-1">
+                      Preenchido automaticamente com o KM atual do veículo selecionado.
+                    </p>
+                  )}
                 </FormItem>
               )} />
               <FormField control={form.control} name="data_entrada" render={({ field }) => (

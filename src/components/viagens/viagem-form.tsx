@@ -19,6 +19,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { CidadeAutocomplete } from '@/components/cidades/cidade-autocomplete'
 import { DestinosMultiplos } from './destinos-multiplos'
+import { OCRUpload } from '@/components/ocr/ocr-upload'
 
 import {
   ViagemPreviewPanel,
@@ -344,6 +345,22 @@ export function ViagemForm({ veiculos, motoristas, plano = 'demo' }: Props) {
               </p>
             ) : (
               <>
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs text-ink-muted">Preencher via Nota Fiscal / DANFE</p>
+                  <OCRUpload
+                    tipo="nf"
+                    compact
+                    onExtraido={(dados) => {
+                      if (dados.numero_nf)             form.setValue('cte_numero', String(dados.numero_nf))
+                      if (dados.valor_total)           form.setValue('valor_frete', Number(dados.valor_total))
+                      if (dados.razao_social_emitente) form.setValue('cliente',     String(dados.razao_social_emitente))
+                      if (dados.chave_acesso)          form.setValue('cte_chave',   String(dados.chave_acesso))
+                      if (dados.descricao_carga)       form.setValue('tipo_carga',  String(dados.descricao_carga))
+                      if (dados.peso_bruto)            form.setValue('peso_ton',    Number(dados.peso_bruto) / 1000)
+                      form.trigger(['valor_frete', 'cte_chave'])
+                    }}
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <FormField control={form.control} name="cte_numero" render={({ field }) => (
                     <FormItem>

@@ -24,9 +24,9 @@ const ITENS_PADRAO = [
 ]
 
 const STATUS_CONFIG = {
-  aprovado:      { label: 'Aprovado',       className: 'bg-accent/10 text-accent border-accent/30' },
-  com_ressalvas: { label: 'Com ressalvas',  className: 'bg-amber-100 text-amber-700 border-amber-300' },
-  reprovado:     { label: 'Reprovado',      className: 'bg-red-100 text-red-700 border-red-300' },
+  aprovado:      { label: 'OK',                    className: 'bg-accent/10 text-accent border-accent/30' },
+  com_ressalvas: { label: 'Com itens a verificar', className: 'bg-amber-100 text-amber-700 border-amber-300' },
+  reprovado:     { label: 'Com problemas',         className: 'bg-red-100 text-red-700 border-red-300' },
 } as const
 
 type ChecklistRow = {
@@ -69,10 +69,11 @@ export function ChecklistsClient({ checklists, veiculos, motoristas }: Props) {
         </div>
       ) : (
         <div className="bg-app-card border rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] text-sm">
             <thead>
               <tr className="border-b bg-app-subtle">
-                {['Data', 'Veículo', 'Motorista', 'Tipo', 'Status', 'Itens NC'].map((h) => (
+                {['Data', 'Veículo', 'Motorista', 'Tipo', 'Status', 'Itens com problema'].map((h) => (
                   <th key={h} className="px-4 py-3 text-left font-mono text-[11px] uppercase tracking-wider text-ink-muted">{h}</th>
                 ))}
               </tr>
@@ -88,7 +89,7 @@ export function ChecklistsClient({ checklists, veiculos, motoristas }: Props) {
                     </td>
                     <td className="px-4 py-3 font-mono font-medium">{c.veiculos?.placa ?? '—'}</td>
                     <td className="px-4 py-3">{c.motoristas?.nome ?? '—'}</td>
-                    <td className="px-4 py-3 capitalize">{c.tipo === 'saida' ? 'Saída' : 'Chegada'}</td>
+                    <td className="px-4 py-3">{c.tipo === 'saida' ? 'Vistoria de saída' : 'Vistoria de chegada'}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${cfg.className}`}>
                         {cfg.label}
@@ -106,6 +107,7 @@ export function ChecklistsClient({ checklists, veiculos, motoristas }: Props) {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
@@ -202,8 +204,8 @@ function ChecklistForm({
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                 <SelectContent>
-                  <SelectItem value="saida">Saída</SelectItem>
-                  <SelectItem value="chegada">Chegada</SelectItem>
+                  <SelectItem value="saida">Vistoria de saída</SelectItem>
+                  <SelectItem value="chegada">Vistoria de chegada</SelectItem>
                 </SelectContent>
               </Select>
             </FormItem>

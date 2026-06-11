@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2, Plus, Trash2 } from 'lucide-react'
+import { Loader2, Plus, Trash2, ChevronDown } from 'lucide-react'
 import { toast } from 'sonner'
 
 import {
@@ -22,6 +22,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { AlertTriangle } from 'lucide-react'
+import { OCRUpload } from '@/components/ocr/ocr-upload'
 
 type Motorista = Partial<MotoristaFormData> & { id?: string }
 
@@ -68,11 +69,35 @@ export function MotoristaForm({ motorista, onSuccess, onCancel }: Props) {
   }
 
   const cnhAlerta = cnhAlertContent(cnhValidade)
+  const hasExtraData = isEdit && Boolean(
+    motorista?.cnh_numero || motorista?.mopp_validade ||
+    motorista?.nr_validade || (motorista?.documentos?.length ?? 0) > 0
+  )
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
         <div className="flex-1 overflow-y-auto px-1 space-y-8 pb-4">
+          {!isEdit && (
+            <div className="pb-5 border-b">
+              <p className="text-sm font-medium mb-1">Preencher automaticamente via CNH</p>
+              <p className="text-xs text-ink-muted mb-3">
+                Tire uma foto da CNH ou envie o arquivo — os campos serão preenchidos automaticamente.
+              </p>
+              <OCRUpload
+                tipo="cnh"
+                onExtraido={(dados) => {
+                  if (dados.nome)          form.setValue('nome',          String(dados.nome))
+                  if (dados.cpf)           form.setValue('cpf',           String(dados.cpf))
+                  if (dados.cnh_numero)    form.setValue('cnh_numero',    String(dados.cnh_numero))
+                  if (dados.cnh_categoria) form.setValue('cnh_categoria', String(dados.cnh_categoria) as typeof CNH_CATEGORIAS[number])
+                  if (dados.cnh_validade)  form.setValue('cnh_validade',  String(dados.cnh_validade))
+                  form.trigger(['nome', 'cpf', 'cnh_categoria', 'cnh_validade'])
+                }}
+              />
+            </div>
+          )}
+
           {/* DADOS PESSOAIS */}
           <Secao titulo="Dados pessoais">
             <FormField control={form.control} name="nome" render={({ field }) => (
@@ -140,26 +165,17 @@ export function MotoristaForm({ motorista, onSuccess, onCancel }: Props) {
 
           {/* HABILITAÇÃO */}
           <Secao titulo="Habilitação">
-            <div className="grid grid-cols-2 gap-3">
-              <FormField control={form.control} name="cnh_numero" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Número da CNH</FormLabel>
-                  <FormControl><Input {...field} value={field.value ?? ''} className="font-mono" placeholder="00000000000" /></FormControl>
-                </FormItem>
-              )} />
-
-              <FormField control={form.control} name="cnh_categoria" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Categoria</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                    <FormControl><SelectTrigger><SelectValue placeholder="—" /></SelectTrigger></FormControl>
-                    <SelectContent>
-                      {CNH_CATEGORIAS.map((c) => <SelectItem key={c} value={c} className="font-mono">{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </FormItem>
-              )} />
-            </div>
+            <FormField control={form.control} name="cnh_categoria" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Categoria</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                  <FormControl><SelectTrigger><SelectValue placeholder="—" /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    {CNH_CATEGORIAS.map((c) => <SelectItem key={c} value={c} className="font-mono">{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )} />
 
             <FormField control={form.control} name="cnh_validade" render={({ field }) => (
               <FormItem>
@@ -178,80 +194,94 @@ export function MotoristaForm({ motorista, onSuccess, onCancel }: Props) {
             )}
           </Secao>
 
-          <Separator />
+          <details open={hasExtraData} className="mt-1 group">
+            <summary className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer hover:text-ink list-none py-1.5">
+              <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+              Documentos e certificações (opcional)
+            </summary>
+            <div className="pt-3 space-y-6">
+              <div className="space-y-3">
+                <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-ink-muted">Nº da CNH</h3>
+                <FormField control={form.control} name="cnh_numero" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Número da CNH</FormLabel>
+                    <FormControl><Input {...field} value={field.value ?? ''} className="font-mono" placeholder="00000000000" /></FormControl>
+                  </FormItem>
+                )} />
+              </div>
 
-          {/* CERTIFICAÇÕES */}
-          <Secao titulo="Certificações">
-            <div className="grid grid-cols-2 gap-3">
-              <FormField control={form.control} name="mopp_validade" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>MOPP — validade</FormLabel>
-                  <FormControl>
-                    <Input type="date" value={field.value ?? ''} onChange={field.onChange} className="font-mono" />
-                  </FormControl>
-                </FormItem>
-              )} />
-
-              <FormField control={form.control} name="nr_validade" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>NR — validade</FormLabel>
-                  <FormControl>
-                    <Input type="date" value={field.value ?? ''} onChange={field.onChange} className="font-mono" />
-                  </FormControl>
-                </FormItem>
-              )} />
-            </div>
-          </Secao>
-
-          <Separator />
-
-          {/* DOCUMENTOS EXTRAS */}
-          <Secao titulo="Documentos extras">
-            <div className="space-y-2">
-              {docsArray.fields.map((field, i) => (
-                <div key={field.id} className="flex items-end gap-2">
-                  <FormField control={form.control} name={`documentos.${i}.tipo`} render={({ field: f }) => (
-                    <FormItem className="flex-1">
-                      {i === 0 && <FormLabel className="text-xs">Tipo do documento</FormLabel>}
-                      <FormControl><Input {...f} placeholder="Ex: Carteira de trabalho" /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name={`documentos.${i}.validade`} render={({ field: f }) => (
-                    <FormItem className="w-40">
-                      {i === 0 && <FormLabel className="text-xs">Validade</FormLabel>}
+              <div className="space-y-3">
+                <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-ink-muted">Certificações</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField control={form.control} name="mopp_validade" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>MOPP — validade</FormLabel>
                       <FormControl>
-                        <Input type="date" value={f.value ?? ''} onChange={f.onChange} className="font-mono" />
+                        <Input type="date" value={field.value ?? ''} onChange={field.onChange} className="font-mono" />
                       </FormControl>
-                      <FormMessage />
+                      <p className="text-xs text-ink-muted">Transporte de produtos perigosos. Validade conforme certificado ANTT.</p>
                     </FormItem>
                   )} />
+                  <FormField control={form.control} name="nr_validade" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>NR — validade</FormLabel>
+                      <FormControl>
+                        <Input type="date" value={field.value ?? ''} onChange={field.onChange} className="font-mono" />
+                      </FormControl>
+                    </FormItem>
+                  )} />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-ink-muted">Documentos extras</h3>
+                <div className="space-y-2">
+                  {docsArray.fields.map((field, i) => (
+                    <div key={field.id} className="flex items-end gap-2">
+                      <FormField control={form.control} name={`documentos.${i}.tipo`} render={({ field: f }) => (
+                        <FormItem className="flex-1">
+                          {i === 0 && <FormLabel className="text-xs">Tipo do documento</FormLabel>}
+                          <FormControl><Input {...f} placeholder="Ex: Carteira de trabalho" /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name={`documentos.${i}.validade`} render={({ field: f }) => (
+                        <FormItem className="w-40">
+                          {i === 0 && <FormLabel className="text-xs">Validade</FormLabel>}
+                          <FormControl>
+                            <Input type="date" value={f.value ?? ''} onChange={f.onChange} className="font-mono" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 text-ink-muted hover:text-destructive"
+                        onClick={() => docsArray.remove(i)}
+                        aria-label="Remover documento"
+                      >
+                        <Trash2 size={15} />
+                      </Button>
+                    </div>
+                  ))}
+
                   <Button
                     type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 text-ink-muted hover:text-destructive"
-                    onClick={() => docsArray.remove(i)}
-                    aria-label="Remover documento"
+                    variant="outline"
+                    size="sm"
+                    disabled={docsArray.fields.length >= 10}
+                    onClick={() => docsArray.append({ tipo: '', validade: '' })}
+                    className="w-full"
                   >
-                    <Trash2 size={15} />
+                    <Plus className="mr-1.5 h-3.5 w-3.5" />
+                    Adicionar documento {docsArray.fields.length > 0 && `(${docsArray.fields.length}/10)`}
                   </Button>
                 </div>
-              ))}
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={docsArray.fields.length >= 10}
-                onClick={() => docsArray.append({ tipo: '', validade: '' })}
-                className="w-full"
-              >
-                <Plus className="mr-1.5 h-3.5 w-3.5" />
-                Adicionar documento {docsArray.fields.length > 0 && `(${docsArray.fields.length}/10)`}
-              </Button>
+              </div>
             </div>
-          </Secao>
+          </details>
         </div>
 
         {/* RODAPÉ */}

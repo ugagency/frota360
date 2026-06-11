@@ -8,10 +8,10 @@ export type StatusValue =
 
 const MAP: Record<StatusValue, { label: string; cls: string }> = {
   ativo:          { label: 'ATIVO',          cls: 'bg-accent-surface text-accent border-accent-border' },
-  concluida:      { label: 'CONCLUÍDA',      cls: 'bg-accent-surface text-accent border-accent-border' },
+  concluida:      { label: 'ENTREGUE',        cls: 'bg-accent-surface text-accent border-accent-border' },
 
   em_viagem:      { label: 'EM VIAGEM',      cls: 'bg-brand-surface text-brand-dark border-brand-border' },
-  em_andamento:   { label: 'EM ANDAMENTO',   cls: 'bg-brand-surface text-brand-dark border-brand-border' },
+  em_andamento:   { label: 'EM VIAGEM',      cls: 'bg-brand-surface text-brand-dark border-brand-border' },
   preventiva:     { label: 'PREVENTIVA',     cls: 'bg-brand-surface text-brand-dark border-brand-border' },
 
   em_manutencao:  { label: 'EM MANUTENÇÃO',  cls: 'bg-blue-50 text-blue-700 border-blue-200' },

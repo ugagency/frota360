@@ -6,10 +6,13 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { PriorityBadge, type Priority } from '@/components/ui/priority-badge'
 import { resolverAlerta } from '@/app/actions/alertas'
+import { CnhRenovacaoInline } from '@/components/alertas/cnh-renovacao-inline'
 import { formatDate } from '@/lib/utils'
 
 type Alerta = {
   id: string
+  tipo: string
+  referencia_id: string
   titulo: string
   descricao: string | null
   data_alerta: string
@@ -26,7 +29,7 @@ export async function AlertasWidget() {
   // do SQL ordena alfabeticamente, não semanticamente.
   const { data, count } = await supabase
     .from('alertas')
-    .select('id, titulo, descricao, data_alerta, prioridade', { count: 'exact' })
+    .select('id, tipo, referencia_id, titulo, descricao, data_alerta, prioridade', { count: 'exact' })
     .eq('status', 'pendente')
     .returns<Alerta[]>()
 
@@ -69,6 +72,9 @@ function AlertaItem({ alerta }: { alerta: Alerta }) {
           <div className="text-sm font-medium text-ink leading-tight">{alerta.titulo}</div>
           {alerta.descricao && (
             <div className="mt-1 text-xs text-ink-secondary leading-snug">{alerta.descricao}</div>
+          )}
+          {alerta.tipo === 'cnh_vencimento' && (
+            <CnhRenovacaoInline motoristaId={alerta.referencia_id} alertaId={alerta.id} />
           )}
           <div className="mt-2 flex items-center justify-between gap-2">
             <span className="font-mono text-[11px] text-ink-muted">{formatDate(alerta.data_alerta)}</span>

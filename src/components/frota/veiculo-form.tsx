@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 
 import {
   veiculoSchema, type VeiculoFormData,
-  TIPO_VEICULO, TIPO_LABELS, MARCAS, PROPRIETARIO, PROPRIETARIO_LABELS,
+  TIPO_VEICULO, TIPO_LABELS, PROPRIETARIO, PROPRIETARIO_LABELS,
   CATEGORIA_VEICULO, CATEGORIA_LABELS,
 } from '@/lib/validations/veiculo'
 import { criarVeiculo, atualizarVeiculo } from '@/app/actions/veiculos'
@@ -186,12 +186,9 @@ export function VeiculoForm({ veiculo, onSuccess, onCancel, plano = 'demo' }: Pr
               <FormField control={form.control} name="marca" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Marca</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                    <FormControl><SelectTrigger><SelectValue placeholder="—" /></SelectTrigger></FormControl>
-                    <SelectContent>
-                      {MARCAS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <Input {...field} value={field.value ?? ''} placeholder="Scania, Volvo, VW…" />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )} />

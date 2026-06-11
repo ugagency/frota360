@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Truck, Users, Route, Wrench, DollarSign,
-  BarChart3, Settings, Bot, ClipboardList, type LucideIcon,
+  BarChart3, Settings, Bot, ClipboardList, Building2, type LucideIcon,
 } from 'lucide-react'
 
 export type NavItem = {
@@ -16,6 +16,7 @@ export const NAV_ITEMS: NavItem[] = [
 
   { label: 'Frota',         href: '/frota',        icon: Truck,         section: 'OPERAÇÕES', modulo: 'frota' },
   { label: 'Motoristas',    href: '/motoristas',   icon: Users,         section: 'OPERAÇÕES', modulo: 'motoristas' },
+  { label: 'Clientes',      href: '/clientes',     icon: Building2,     section: 'OPERAÇÕES', modulo: 'clientes' },
   { label: 'Viagens',       href: '/viagens',      icon: Route,         section: 'OPERAÇÕES', modulo: 'viagens' },
 
   { label: 'Manutenção',    href: '/manutencao',   icon: Wrench,        section: 'GESTÃO', modulo: 'manutencao' },

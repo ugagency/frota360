@@ -14,9 +14,9 @@ export const dynamic = 'force-dynamic'
 
 type AlertaCompleto = {
   id: string
-  tipo: 'manutencao_km' | 'manutencao_data' | 'cnh_vencimento' | 'mopp_vencimento' | 'licenciamento'
+  tipo: string
   referencia_id: string
-  referencia_tipo: 'veiculo' | 'motorista'
+  referencia_tipo: 'veiculo' | 'motorista' | 'viagem' | 'cliente'
   titulo: string
   descricao: string | null
   data_alerta: string
@@ -102,10 +102,15 @@ export default async function AlertasPage({ searchParams }: { searchParams: Sear
                     <div className="mt-2 flex items-center gap-3">
                       <span className="font-mono text-[11px] text-ink-muted">{formatDate(a.data_alerta)}</span>
                       <Link
-                        href={a.referencia_tipo === 'veiculo' ? `/frota/${a.referencia_id}` : `/motoristas/${a.referencia_id}`}
+                        href={
+                          a.referencia_tipo === 'veiculo'  ? `/frota/${a.referencia_id}` :
+                          a.referencia_tipo === 'motorista'? `/motoristas/${a.referencia_id}` :
+                          a.referencia_tipo === 'cliente'  ? `/clientes/${a.referencia_id}` :
+                          `/viagens/${a.referencia_id}`
+                        }
                         className="text-[11px] text-brand hover:text-brand-dark font-medium"
                       >
-                        Ver {a.referencia_tipo} →
+                        Ver {a.referencia_tipo === 'cliente' ? 'cliente' : a.referencia_tipo} →
                       </Link>
                     </div>
                   </div>

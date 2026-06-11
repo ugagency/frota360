@@ -553,6 +553,12 @@ export type Database = {
           email: string | null
           cidade: string | null
           estado: string | null
+          status: string
+          segmento: string | null
+          proxima_acao: string | null
+          valor_mensal_est: number | null
+          prazo_pagamento: number
+          notas_internas: string | null
           created_at: string
         }
         Insert: {
@@ -564,6 +570,12 @@ export type Database = {
           email?: string | null
           cidade?: string | null
           estado?: string | null
+          status?: string
+          segmento?: string | null
+          proxima_acao?: string | null
+          valor_mensal_est?: number | null
+          prazo_pagamento?: number
+          notas_internas?: string | null
           created_at?: string
         }
         Update: {
@@ -575,7 +587,106 @@ export type Database = {
           email?: string | null
           cidade?: string | null
           estado?: string | null
+          status?: string
+          segmento?: string | null
+          proxima_acao?: string | null
+          valor_mensal_est?: number | null
+          prazo_pagamento?: number
+          notas_internas?: string | null
           created_at?: string
+        }
+        Relationships: []
+      }
+      crm_interacoes: {
+        Row: {
+          id: string
+          transportadora_id: string
+          cliente_id: string
+          criado_por: string | null
+          tipo: string
+          titulo: string
+          descricao: string | null
+          data_interacao: string
+          proximo_contato: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          transportadora_id: string
+          cliente_id: string
+          criado_por?: string | null
+          tipo: string
+          titulo: string
+          descricao?: string | null
+          data_interacao?: string
+          proximo_contato?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          transportadora_id?: string
+          cliente_id?: string
+          criado_por?: string | null
+          tipo?: string
+          titulo?: string
+          descricao?: string | null
+          data_interacao?: string
+          proximo_contato?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      crm_contratos: {
+        Row: {
+          id: string
+          transportadora_id: string
+          cliente_id: string
+          titulo: string
+          status: string
+          data_inicio: string | null
+          data_fim: string | null
+          prazo_pagamento: number
+          valor_por_km: number | null
+          valor_minimo_frete: number | null
+          rotas_cobertas: string | null
+          observacoes: string | null
+          arquivo_url: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          transportadora_id: string
+          cliente_id: string
+          titulo: string
+          status?: string
+          data_inicio?: string | null
+          data_fim?: string | null
+          prazo_pagamento?: number
+          valor_por_km?: number | null
+          valor_minimo_frete?: number | null
+          rotas_cobertas?: string | null
+          observacoes?: string | null
+          arquivo_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          transportadora_id?: string
+          cliente_id?: string
+          titulo?: string
+          status?: string
+          data_inicio?: string | null
+          data_fim?: string | null
+          prazo_pagamento?: number
+          valor_por_km?: number | null
+          valor_minimo_frete?: number | null
+          rotas_cobertas?: string | null
+          observacoes?: string | null
+          arquivo_url?: string | null
+          created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }

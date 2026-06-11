@@ -29,7 +29,9 @@ const PAGE_TITLES: Record<string, string> = {
   '/assistente':    'Assistente IA',
   '/configuracoes': 'Configurações',
   '/upgrade':       'Planos',
-  '/importar':      'Importar dados',
+  '/importar':               'Importar dados',
+  '/clientes':               'Clientes',
+  '/clientes/rentabilidade': 'Rentabilidade',
 }
 
 export function Header({ userNome, userEmail, plano, planoStatus, alertasCriticos = 0, onOpenMobile }: Props) {

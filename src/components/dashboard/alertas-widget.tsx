@@ -13,6 +13,7 @@ type Alerta = {
   id: string
   tipo: string
   referencia_id: string
+  referencia_tipo: string
   titulo: string
   descricao: string | null
   data_alerta: string
@@ -29,7 +30,7 @@ export async function AlertasWidget() {
   // do SQL ordena alfabeticamente, não semanticamente.
   const { data, count } = await supabase
     .from('alertas')
-    .select('id, tipo, referencia_id, titulo, descricao, data_alerta, prioridade', { count: 'exact' })
+    .select('id, tipo, referencia_id, referencia_tipo, titulo, descricao, data_alerta, prioridade', { count: 'exact' })
     .eq('status', 'pendente')
     .returns<Alerta[]>()
 
@@ -77,7 +78,14 @@ function AlertaItem({ alerta }: { alerta: Alerta }) {
             <CnhRenovacaoInline motoristaId={alerta.referencia_id} alertaId={alerta.id} />
           )}
           <div className="mt-2 flex items-center justify-between gap-2">
-            <span className="font-mono text-[11px] text-ink-muted">{formatDate(alerta.data_alerta)}</span>
+            <div className="flex items-center gap-3">
+              <span className="font-mono text-[11px] text-ink-muted">{formatDate(alerta.data_alerta)}</span>
+              {alerta.referencia_tipo === 'cliente' && (
+                <Link href={`/clientes/${alerta.referencia_id}`} className="text-[11px] text-brand hover:text-brand-dark font-medium">
+                  Ver cliente →
+                </Link>
+              )}
+            </div>
             <form action={resolverAlerta}>
               <input type="hidden" name="id" value={alerta.id} />
               <Button type="submit" size="sm" variant="ghost" className="h-7 px-2 text-xs text-ink-secondary hover:text-accent hover:bg-accent-surface">

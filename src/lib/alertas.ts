@@ -7,12 +7,12 @@ import type { Plano } from '@/lib/plano'
 type SB = SupabaseClient<Database, 'public', any>
 type AlertaTipo =
   | 'manutencao_km' | 'manutencao_data' | 'cnh_vencimento' | 'mopp_vencimento' | 'licenciamento'
-  | 'seguro_vencimento' | 'mdfe_nao_encerrado' | 'checklist'
+  | 'seguro_vencimento' | 'mdfe_nao_encerrado' | 'checklist' | 'crm_followup'
 
 type Candidato = {
   tipo:           AlertaTipo
   referencia_id:  string
-  referencia_tipo: 'veiculo' | 'motorista' | 'viagem'
+  referencia_tipo: 'veiculo' | 'motorista' | 'viagem' | 'cliente'
   titulo:         string
   descricao:      string | null
   data_alerta:    string
@@ -173,6 +173,33 @@ export async function gerarAlertas(supabase: SB, transportadoraId: string, plano
         descricao: `MDF-e ${v.mdfe_numero} precisa ser encerrado. Placa pode ser bloqueada na SEFAZ.`,
         data_alerta: hoje,
         prioridade: 'critico',
+      })
+    }
+  }
+
+  // 8. Follow-up CRM — clientes com proxima_acao <= hoje
+  {
+    type ClienteRow = { id: string; razao_social: string; proxima_acao: string }
+    const { data: clientesFollowUp } = await supabase
+      .from('clientes')
+      .select('id, razao_social, proxima_acao')
+      .eq('transportadora_id', transportadoraId)
+      .neq('status', 'inativo')
+      .not('proxima_acao', 'is', null)
+      .lte('proxima_acao', hoje)
+      .returns<ClienteRow[]>()
+
+    for (const cl of clientesFollowUp ?? []) {
+      const dias = getDaysUntil(cl.proxima_acao)
+      candidatos.push({
+        tipo: 'crm_followup',
+        referencia_id: cl.id, referencia_tipo: 'cliente',
+        titulo: `Follow-up — ${cl.razao_social}`,
+        descricao: dias === 0
+          ? 'Ação de follow-up programada para hoje.'
+          : `Follow-up atrasado há ${Math.abs(dias)} ${Math.abs(dias) === 1 ? 'dia' : 'dias'}.`,
+        data_alerta: cl.proxima_acao,
+        prioridade: 'medio',
       })
     }
   }

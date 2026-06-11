@@ -19,7 +19,7 @@ export const clienteSchema = z.object({
   razao_social:     z.string().min(2, 'Mínimo 2 caracteres'),
   cnpj:             z.string().optional().nullable(),
   telefone:         z.string().optional().nullable(),
-  email:            z.string().email('E-mail inválido').optional().nullable().or(z.literal('')).transform((v) => v || null),
+  email:            z.preprocess((v) => (v === '' ? null : v), z.string().email('E-mail inválido').nullable().optional()),
   cidade:           z.string().optional().nullable(),
   estado:           z.string().optional().nullable(),
   status:           z.enum(STATUS_CLIENTE).default('ativo'),

@@ -95,6 +95,66 @@ export async function criarInteracao(clienteId: string, data: InteracaoFormData)
   return { ok: true }
 }
 
+// ─── Lookup CNPJ via CNPJa ────────────────────────────────────────────────────
+
+export type CNPJaResult = {
+  ok: true
+  dados: {
+    razao_social: string
+    cnpj: string
+    email: string | null
+    telefone: string | null
+    cidade: string | null
+    estado: string | null
+  }
+} | { ok: false; error: string }
+
+export async function buscarCNPJ(cnpj: string): Promise<CNPJaResult> {
+  const digits = cnpj.replace(/\D/g, '')
+  if (digits.length !== 14) return { ok: false, error: 'CNPJ deve ter 14 dígitos.' }
+
+  try {
+    const resp = await fetch(`https://open.cnpja.com/office/${digits}`, {
+      headers: { 'Accept': 'application/json' },
+      next: { revalidate: 0 },
+    })
+
+    if (resp.status === 404) return { ok: false, error: 'CNPJ não encontrado na base da Receita Federal.' }
+    if (!resp.ok) return { ok: false, error: 'Serviço de consulta CNPJ indisponível. Tente novamente.' }
+
+    const json = await resp.json()
+
+    const razaoSocial: string = json?.company?.name ?? json?.alias ?? ''
+    if (!razaoSocial) return { ok: false, error: 'Não foi possível extrair os dados da empresa.' }
+
+    const email: string | null = json?.emails?.[0]?.address ?? null
+    const fone  = json?.phones?.[0]
+    const telefone: string | null = fone
+      ? `(${fone.area}) ${String(fone.number).replace(/^(\d{4,5})(\d{4})$/, '$1-$2')}`
+      : null
+    const cidade: string | null = json?.address?.municipality
+      ? toTitleCase(json.address.municipality)
+      : null
+    const estado: string | null = json?.address?.state ?? null
+
+    const cnpjFormatado = digits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
+
+    return {
+      ok: true,
+      dados: { razao_social: razaoSocial, cnpj: cnpjFormatado, email, telefone, cidade, estado },
+    }
+  } catch {
+    return { ok: false, error: 'Erro ao consultar CNPJ. Verifique sua conexão.' }
+  }
+}
+
+function toTitleCase(str: string): string {
+  const minors = new Set(['de', 'da', 'do', 'das', 'dos', 'e'])
+  return str.toLowerCase().split(' ').map((w, i) =>
+    i === 0 || !minors.has(w) ? w.charAt(0).toUpperCase() + w.slice(1) : w
+  ).join(' ')
+}
+
 // ─── Contratos ────────────────────────────────────────────────────────────────
 
 export async function criarContrato(clienteId: string, data: ContratoFormData): Promise<ActionResult> {
